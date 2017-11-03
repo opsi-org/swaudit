@@ -11,6 +11,7 @@ ScriptErrorMessages=false
 DefVar $Highloglevel$
 DefVar $Midloglevel$
 DefVar $Lowloglevel$
+DefVar $selectedMaxLogLevel$
 DefVar $ProductId$
 DefVar $OpsiRegKey$
 DefVar $uninstkey$
@@ -67,7 +68,13 @@ set $Lowloglevel$ = "4"
 ;set $Midloglevel$ = "5"
 ;set $Lowloglevel$ = "6"
 
-setloglevel = $Midloglevel$
+set $selectedMaxLogLevel$ = GetProductProperty("maxloglevel",$Highloglevel$)
+
+if $selectedMaxLogLevel$ INT< $Midloglevel$
+	setloglevel = $selectedMaxLogLevel$
+else
+	setloglevel = $Midloglevel$
+endif
 
 
 Message "Running software audit..."
@@ -94,18 +101,31 @@ else
 	set $write2file$ = "off"
 endif
 
-setloglevel = $Midloglevel$
-
+if $selectedMaxLogLevel$ INT< $Midloglevel$
+	setloglevel = $selectedMaxLogLevel$
+else
+	setloglevel = $Midloglevel$
+endif
 
 
 if $readfromfile$ = "off"
 	if $usekeyfinder$ = "on"
 		message "collecting license keys ..."
 		set $proccall$ = '"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "%opsiTmpDir%\" /file "swaudit_keys.ini"'
-		setloglevel = $Highloglevel$
+		if $selectedMaxLogLevel$ INT< $Highloglevel$
+			setloglevel = $selectedMaxLogLevel$
+		else
+			setloglevel = $Highloglevel$
+		endif
+
 		set $exitcode$ = processcall($proccall$)
 		set $LicenseSections$ = GetSectionNames("%opsiTmpDir%\swaudit_keys.ini")
-		setloglevel = $Midloglevel$
+		if $selectedMaxLogLevel$ INT< $Midloglevel$
+			setloglevel = $selectedMaxLogLevel$
+		else
+			setloglevel = $Midloglevel$
+		endif
+
 	endif
 	if GetSystemType = "64 Bit System"
 		message "collecting 64 Bit products ..."
@@ -119,23 +139,43 @@ if $readfromfile$ = "off"
 	
 	message "collecting 32 Bit products ..."
 	set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
-	setloglevel = $Highloglevel$
+	if $selectedMaxLogLevel$ INT< $Highloglevel$
+		setloglevel = $selectedMaxLogLevel$
+	else
+		setloglevel = $Highloglevel$
+	endif
+
 	
 	message "collecting 32 Bit product details ..."
 	set $architecture$ = "x86"
 	set $subversion$ = ""
 	set $Language$ = ""
 	for %aktkey% in $uninstKeys$ do sub_getswdetails4_32
-	setloglevel=$Highloglevel$
+	if $selectedMaxLogLevel$ INT< $Highloglevel$
+		setloglevel = $selectedMaxLogLevel$
+	else
+		setloglevel = $Highloglevel$
+	endif
+
 	message "collecting os details ..."
 	sub_get_windows_info
 	sub_create_hash4
-	setloglevel=$Midloglevel$
+	if $selectedMaxLogLevel$ INT< $Midloglevel$
+		setloglevel = $selectedMaxLogLevel$
+	else
+		setloglevel = $Midloglevel$
+	endif
+
 
 	if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
 		message "collecting hotfixes ..."
 		sub_get_nt6_hotfix_info
-		setloglevel = $Highloglevel$
+		if $selectedMaxLogLevel$ INT< $Highloglevel$
+			setloglevel = $selectedMaxLogLevel$
+		else
+			setloglevel = $Highloglevel$
+		endif
+
 	endif
 	comment "convert object list to json array .."
 	set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
@@ -182,7 +222,12 @@ else
 	comment "mask single quotes by double single quotes before sending ...."
 	set $softwareObjectArray$ = stringReplace($softwareObjectArray$, "'", "''")
 	set $softwareOnClientObjectArray$ = stringReplace($softwareOnClientObjectArray$, "'", "''")
-	setloglevel = $Highloglevel$
+	if $selectedMaxLogLevel$ INT< $Highloglevel$
+		setloglevel = $selectedMaxLogLevel$
+	else
+		setloglevel = $Highloglevel$
+	endif
+
 	if $debug_send$ = "true"
 		comment "we use debug_send: one servicall per object"
 		markErrorNumber
@@ -217,7 +262,12 @@ else
 			isFatalError
 		endif
 	endif
-	setloglevel = $Midloglevel$
+	if $selectedMaxLogLevel$ INT< $Midloglevel$
+		setloglevel = $selectedMaxLogLevel$
+	else
+		setloglevel = $Midloglevel$
+	endif
+
 endif
 Files_del_temp
 
@@ -225,7 +275,12 @@ Files_del_temp
 
 
 [sub_getswdetails4_32]
-setloglevel=$Midloglevel$
+if $selectedMaxLogLevel$ INT< $Midloglevel$
+	setloglevel = $selectedMaxLogLevel$
+else
+	setloglevel = $Midloglevel$
+endif
+
 ; use EscapeString to handle keys with quotation
 set $aktkey$ = EscapeString:%aktkey%
 if not ($aktkey$ = "")
@@ -256,7 +311,12 @@ if not ($aktkey$ = "")
 endif
 
 [sub_getswdetails4_64]
-setloglevel=$Midloglevel$
+if $selectedMaxLogLevel$ INT< $Midloglevel$
+	setloglevel = $selectedMaxLogLevel$
+else
+	setloglevel = $Midloglevel$
+endif
+
 ; use EscapeString to handle keys with quotation
 set $aktkey$ = EscapeString:%aktkey%
 if not ($aktkey$ = "")
@@ -337,7 +397,12 @@ else
 endif
 
 [sub_get_nt6_hotfix_info]
-setloglevel = $Highloglevel$
+if $selectedMaxLogLevel$ INT< $Highloglevel$
+	setloglevel = $selectedMaxLogLevel$
+else
+	setloglevel = $Highloglevel$
+endif
+
 Set $displayVersion$ = ""
 Set $uninstallString$ = ""
 Set $version$ = ""
@@ -352,7 +417,12 @@ set $resultlist$ = getListContaining($resultlist$, "KB")
 for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
 
 [sub_process_nt6_hotfix_info]
-setloglevel=$Midloglevel$
+if $selectedMaxLogLevel$ INT< $Midloglevel$
+	setloglevel = $selectedMaxLogLevel$
+else
+	setloglevel = $Midloglevel$
+endif
+
 Set $winSoftwareId$  = trim("%akthotfix%")
 Set $displayName$    = trim("%akthotfix%")
 Set $name$ = $displayName$
@@ -371,7 +441,12 @@ else
 endif
 set $version$ = $displayVersion$
 
-setloglevel = $Highloglevel$
+if $selectedMaxLogLevel$ INT< $Highloglevel$
+	setloglevel = $selectedMaxLogLevel$
+else
+	setloglevel = $Highloglevel$
+endif
+
 comment ""
 comment "next product is...."
 comment "$name$  ----------------= "+$name$
@@ -388,7 +463,12 @@ comment "$displayVersion$ -------= "+$displayVersion$
 comment "$binaryName$ -----------= "+$binaryName$
 comment "$licenseKey$ -----------= "+$licenseKey$
 
-setloglevel = $Lowloglevel$
+if $selectedMaxLogLevel$ INT< $Lowloglevel$
+	setloglevel = $selectedMaxLogLevel$
+else
+	setloglevel = $Lowloglevel$
+endif
+
 
 ; trim entries to DB field length
 set $name$ = strPart($name$,"1","99")

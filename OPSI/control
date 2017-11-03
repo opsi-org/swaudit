@@ -1,5 +1,5 @@
 [Package]
-version: 1
+version: 2
 depends: 
 incremental: False
 
@@ -49,12 +49,27 @@ values: ["off", "on"]
 default: ["off"]
 
 [ProductProperty]
+type: unicode
+name: maxloglevel
+multivalue: False
+editable: False
+description: Reduce log file size by setting lower max log level
+values: ["3", "4", "5", "6", "7", "8"]
+default: ["8"]
+
+[ProductProperty]
 type: bool
 name: debug_send
 description: ONLY DEBUG - Send data using one serviceall per object
 default: False
 
 [Changelog]
+swaudit (4.0.7.4-2) stable; urgency=low
+
+  * max loglevel property added to create the option of limiting log file size
+
+-- rupert roeder <r.roeder@uib.de>  Wed, 25 Jan 2017 14:00:00 +0100
+
 swaudit (4.0.7.4-1) stable; urgency=low
 
   * fix problems with quatations in uninstall key ( #2481)
