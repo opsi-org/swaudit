@@ -212,6 +212,7 @@ if $readfromfile$ = "off"
 		if $OS$ = "Linux"
 			message "collecting products ..."
 			sub_getswdetails4_os
+			
 			if $distrotype$ = "debian"
 				set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
 				setloglevel = $Highloglevel$
@@ -590,13 +591,27 @@ set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnCl
 set $softwareOnClientObjectList$ = addtolist($softwareOnClientObjectList$,$softwareOnClientObject$)
 
 ;;;;;;;; Linux start
+
+[sub_init_vars]
+set $installSize$ = "-1"
+set $architecture$ = ""
+set $version$ = ""
+set $displayName$ = ""
+set $displayVersion$ = ""
+set $binaryName$ = ""
+set $Language$ = ""
+set $subVersion$ = ""
+set $uninstallString$ = ""
+set $binaryName$ = ""
+set $licenseKey$ = ""
+
+
 [sub_getswdetails4_os]
+sub_init_vars
 setloglevel=$Midloglevel$
 set $displayName$ = $distroOS$+" : "+$distroName$
 if not ($displayName$ = '')
 	set $displayVersion$ = $distRelease$
-	set $installSize$ = "-1"
-	set $architecture$ = ""
 	set $tmp$ = $distroarch$
 	if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
 		set $architecture$ = "x86"
@@ -607,12 +622,6 @@ if not ($displayName$ = '')
 	if ($tmp$ = "noarch") or ($tmp$ = "all") 
 		set $architecture$ = ""
 	endif
-	set $binaryName$ = ""
-	set $Language$ = ""
-	set $subVersion$ = ""
-	set $uninstallString$ = ""
-	set $binaryName$ = ""
-	set $licenseKey$ = ""
 	set $winSoftwareId$ = $displayName$
 	sub_create_hash4
 endif
@@ -628,11 +637,10 @@ zypper se -i -s
 yum list installed
 
 
-
-
 [sub_getswdetails4_deb]
 setloglevel=$Midloglevel$
 if not ("%aktline%" = "")
+	sub_init_vars
 	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
 	set $displayName$ = takeString(0,$resultlist$)
 	if not ($displayName$ = '')
@@ -641,7 +649,6 @@ if not ("%aktline%" = "")
 		if not(isNumber($installSize$))
 			set $installSize$ = "-1"
 		endif
-		set $architecture$ = ""
 		set $tmp$ = takeString(2,$resultlist$)
 		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
 			set $architecture$ = "x86"
@@ -652,12 +659,6 @@ if not ("%aktline%" = "")
 		if ($tmp$ = "noarch") or ($tmp$ = "all") 
 			set $architecture$ = ""
 		endif
-		set $binaryName$ = ""
-		set $Language$ = ""
-		set $subVersion$ = ""
-		set $uninstallString$ = ""
-		set $binaryName$ = ""
-		set $licenseKey$ = ""
 		set $winSoftwareId$ = $displayName$
 			
 		sub_create_hash4
@@ -667,11 +668,11 @@ endif
 [sub_getswdetails4_suse]
 setloglevel=$Midloglevel$
 if not ("%aktline%" = "")
+	sub_init_vars
 	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
 	if takeString(0,$resultlist$) = 'i'
 		set $displayName$ = takeString(2,$resultlist$)
 		set $displayVersion$ = takeString(6,$resultlist$)
-		set $architecture$ = ""
 		set $tmp$ = takeString(8,$resultlist$)
 		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
 			set $architecture$ = "x86"
@@ -682,13 +683,6 @@ if not ("%aktline%" = "")
 		if ($tmp$ = "noarch") or ($tmp$ = "all") 
 			set $architecture$ = ""
 		endif
-		set $installSize$ = "-1"
-		set $binaryName$ = ""
-		set $Language$ = ""
-		set $subVersion$ = ""
-		set $uninstallString$ = ""
-		set $binaryName$ = ""
-		set $licenseKey$ = ""
 		set $winSoftwareId$ = $displayName$
 			
 		sub_create_hash4
@@ -698,11 +692,11 @@ endif
 [sub_getswdetails4_redhat]
 setloglevel=$Midloglevel$
 if not ("%aktline%" = "")
+	sub_init_vars
 	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
 	set $displayName$ = takeString(0,$resultlist$)
 	set $resultlist2$  = splitString($displayName$, ".")
 	set $displayName$ = takeString(0,$resultlist2$)
-	set $architecture$ = ""
 	set $tmp$ = takeString(1,$resultlist2$)
 	if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
 		set $architecture$ = "x86"
@@ -714,14 +708,6 @@ if not ("%aktline%" = "")
 		set $architecture$ = ""
 	endif
 	set $displayVersion$ = takeString(1,$resultlist$)
-		
-	set $installSize$ = "-1"
-	set $binaryName$ = ""
-	set $Language$ = ""
-	set $subVersion$ = ""
-	set $uninstallString$ = ""
-	set $binaryName$ = ""
-	set $licenseKey$ = ""
 	set $winSoftwareId$ = $displayName$
 		
 	sub_create_hash4
