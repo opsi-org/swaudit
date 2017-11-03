@@ -1,3 +1,11 @@
+swaudit (4.0-15) testing; urgency=low
+
+  * new property: readfromfile to switch off audit and use the filebuffer files instead
+    ONLY DEBUG - do not use if you are not shure what you doing! (Do not make a audit but read values from c:\tmp and send them)
+
+ -- detlef oertel <d.oertel@uib.de>  Fri, 11 May 2012 15:00:00 +0100
+
+
 swaudit (4.0-14) testing; urgency=low
 
   * workaround for bug#354 (set version to '' if zero) deleted becaus it is fixed

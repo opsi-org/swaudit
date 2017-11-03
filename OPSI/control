@@ -1,5 +1,5 @@
 [Package]
-version: 14
+version: 15
 depends: 
 incremental: False
 
@@ -47,4 +47,13 @@ editable: False
 description: Try to find license keys
 values: ["off", "on"]
 default: ["on"]
+
+[ProductProperty]
+type: unicode
+name: readfromfile
+multivalue: False
+editable: False
+description: ONLY DEBUG - do not use if you are not shure what you doing! (Do not make a audit but read values from c:\tmp and send them)
+values: ["off", "on"]
+default: ["off"]
 

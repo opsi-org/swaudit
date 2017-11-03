@@ -60,10 +60,10 @@ Set $OpsiRegKey$ = "HKLM\SOFTWARE\opsi.org"
 Set $uninstkey$="HKEY_LOCAL_MACHINE\software\microsoft\windows\currentversion\uninstall"
 Set $extendedkey$="HKEY_LOCAL_MACHINE\software\microsoft\windows\currentversion\app management\arpcache"
 set $clientId$="%HostID%"
-set $readfromfile$ = "false"
 set $extended_search$ = GetProductProperty("extended_search","on")
 set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
 set $usekeyfinder$ = GetProductProperty("usekeyfinder","on")
+set $readfromfile$ = GetProductProperty("readfromfile","off")
 set $Highloglevel$ = "5"
 set $Midloglevel$ = "5"
 set $Lowloglevel$ = "4"
@@ -151,7 +151,7 @@ if $opsiVer$ = "3"
 endif
 
 if $opsiVer$ = "4"
-	if $readfromfile$ = "false"
+	if $readfromfile$ = "off"
 		if $usekeyfinder$ = "on"
 			message "collecting license keys ..."
 			Files_del_temp
