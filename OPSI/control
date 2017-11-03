@@ -1,5 +1,5 @@
 [Package]
-version: 4
+version: 1
 depends: 
 incremental: False
 
@@ -8,15 +8,15 @@ type: localboot
 id: swaudit
 name: Client software inventory
 description: Software inventory based on uninstall informations from windows registry
-advice: 
-version: 4.0.6
+advice: opsi-script >= 4.11.6.4 needed
+version: 4.0.7.1
 priority: -90
 licenseRequired: False
 productClasses: 
-setupScript: swaudit4.ins
+setupScript: swaudit.opsiscript
 uninstallScript: 
 updateScript: 
-alwaysScript: swaudit4.ins
+alwaysScript: swaudit.opsiscript
 onceScript: 
 customScript: 
 userLoginScript: 
@@ -37,7 +37,7 @@ multivalue: False
 editable: False
 description: Try to find license keys
 values: ["off", "on"]
-default: ["on"]
+default: ["off"]
 
 [ProductProperty]
 type: unicode
@@ -48,7 +48,26 @@ description: ONLY DEBUG - do not use if you are not shure what you doing! (Do no
 values: ["off", "on"]
 default: ["off"]
 
+[ProductProperty]
+type: bool
+name: debug_send
+description: ONLY DEBUG - Send data using one serviceall per object
+default: False
+
 [Changelog]
+swaudit (4.0.7.1-1) stable; urgency=low
+
+  * code cleanup
+  * complete redesign of webservice connection
+  * requires opsi-scrip 4.11.6
+  * removed opsi3 support
+  * cleanup removed property extended_search
+  * removed win2k support
+  * usekeyfinder now has default off
+  * new property debug_send: Send data using one serviceall per object
+
+-- detlef oertel <d.oertel@uib.de>  Wed, 05 Oct 2016 15:00:00 +0100
+
 swaudit (4.0.6-3) stable; urgency=low
 
   * use new opsi-script functions if possible:

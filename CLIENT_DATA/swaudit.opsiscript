@@ -1,0 +1,444 @@
+; Copyright (c) uib GmbH (www.uib.de)
+; This sourcecode is owned by uib
+; and published under the Terms of the General Public License.
+
+
+[actions]
+encoding=utf8
+requiredWinstVersion >= "4.11.6.4"
+ScriptErrorMessages=false
+
+DefVar $Highloglevel$
+DefVar $Midloglevel$
+DefVar $Lowloglevel$
+DefVar $ProductId$
+DefVar $OpsiRegKey$
+DefVar $uninstkey$
+defVar $winSoftwareId$
+defVar $displayVersion$
+defVar $displayName$
+defVar $uninstallString$
+defVar $Language$
+DefVar $clientId$
+DefVar $name$
+DefVar $version$
+DefVar $subversion$
+DefVar $architecture$
+DefVar $OS$
+DefVar $binaryName$
+DefVar $installSize$
+DefVar $langCodeHex$
+DefVar $licenseKey$
+DefVar $write2file$
+DefVar $readfromfile$
+DefVar $usefilebuffer$
+DefVar $usekeyfinder$
+DefVar $debug_send$
+DefVar $exitcode$
+DefVar $proccall$
+DefVar $serviceMethod$
+
+
+DefStringlist $uninstKeys$
+DefStringlist $resultlist$
+DefStringList $VerInfoMap$
+DefStringList $LicenseSections$
+Defvar $softwareObject$
+DefVar $softwareObjectArray$
+DefStringList $softwareObjectList$
+DefVar $softwareOnClientObject$
+DefVar $softwareOnClientObjectArray$
+DefStringList $softwareOnClientObjectList$
+
+
+set $ProductId$ = "swaudit"
+Set $OpsiRegKey$ = "HKLM\SOFTWARE\opsi.org"
+Set $uninstkey$="HKEY_LOCAL_MACHINE\software\microsoft\windows\currentversion\uninstall"
+set $clientId$="%HostID%"
+set $readfromfile$ = "false"
+set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
+set $usekeyfinder$ = GetProductProperty("usekeyfinder","off")
+set $debug_send$ = GetProductProperty("debug_send","false")
+set $Highloglevel$ = "8"
+set $Midloglevel$ = "5"
+set $Lowloglevel$ = "4"
+;set $Highloglevel$ = "5"
+;set $Midloglevel$ = "5"
+;set $Lowloglevel$ = "6"
+
+setloglevel = $Midloglevel$
+
+
+Message "Running software audit..."
+ShowBitmap "%SCRIPTPATH%\swaudit.png" "Software Inventarisierung"
+
+set $OS$ = GetOS
+
+if $OS$ = "Linux"
+	logError "Run aborted: wrong OS version: only windows NT allowed"
+	isFatalError "Wrong OS"
+endif
+
+if CompareDotSeparatedNumbers(GetMsVersionInfo,"<","5.1")
+	logError "Run aborted: wrong OS version: only winxp and above allowed"
+	isFatalError "Wrong OS Version"
+endif
+
+
+comment "detect if we run in opsi service mode"
+if "%installingProdName%" = ""
+	comment " we running standalone"
+	set $write2file$ = "on"
+else
+	set $write2file$ = "off"
+endif
+
+setloglevel = $Midloglevel$
+
+
+
+if $readfromfile$ = "false"
+	if $usekeyfinder$ = "on"
+		message "collecting license keys ..."
+		set $proccall$ = '"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "%opsiTmpDir%\" /file "swaudit_keys.ini"'
+		setloglevel = $Highloglevel$
+		set $exitcode$ = processcall($proccall$)
+		set $LicenseSections$ = GetSectionNames("%opsiTmpDir%\swaudit_keys.ini")
+		setloglevel = $Midloglevel$
+	endif
+	if GetSystemType = "64 Bit System"
+		message "collecting 64 Bit products ..."
+		set $uninstKeys$ = getRegistryKeyList64($uninstkey$)
+		message "collecting 64 Bit product details ..."
+		set $architecture$ = "x64"
+		set $subversion$ = ""
+		set $Language$ = ""
+		for %aktkey% in $uninstKeys$ do sub_getswdetails4_64
+	endif
+	
+	message "collecting 32 Bit products ..."
+	set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
+	setloglevel = $Highloglevel$
+	
+	message "collecting 32 Bit product details ..."
+	set $architecture$ = "x86"
+	set $subversion$ = ""
+	set $Language$ = ""
+	for %aktkey% in $uninstKeys$ do sub_getswdetails4_32
+	setloglevel=$Highloglevel$
+	message "collecting os details ..."
+	sub_get_windows_info
+	sub_create_hash4
+	setloglevel=$Midloglevel$
+
+	if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
+		message "collecting hotfixes ..."
+		sub_get_nt6_hotfix_info
+		setloglevel = $Highloglevel$
+	endif
+	comment "convert object list to json array .."
+	set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
+	set $softwareOnClientObjectArray$ = jsonStringListToJsonArray($softwareOnClientObjectList$)
+else
+	comment "read from file - only for debugging"
+	setloglevel=7
+	set $softwareObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftware_%PCName%.json","utf8")
+	set $softwareOnClientObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json","utf8")
+endif
+if $write2file$ = "on"
+	message "writing results back to file ..."
+	Files_del_old
+	if not (saveTextFileWithEncoding(createStringList($softwareObjectArray$),"%opsiTmpDir%\auditsoftware_%PCName%.json","utf8"))
+		logerror "Could not save file: %opsiTmpDir%\auditsoftware_%PCName%.json"
+	endif
+	if not (saveTextFileWithEncoding(createStringList($softwareOnClientObjectArray$),"%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json","utf8"))
+		logerror "Could not save file: %opsiTmpDir%\auditsoftwareOnClient_%PCName%.json"
+	endif
+else
+	message "writing results back to service ..."
+	if $usefilebuffer$ = "on"
+		comment "use file buffer ..."
+		Files_del_old
+		comment "write file buffer ..."
+		markErrorNumber
+		if not (saveTextFileWithEncoding(createStringList($softwareObjectArray$),"%opsiTmpDir%\auditsoftware_%PCName%.json","utf8"))
+			logerror "Could not save file: %opsiTmpDir%\auditsoftware_%PCName%.json"
+		endif
+		if not (saveTextFileWithEncoding(createStringList($softwareOnClientObjectArray$),"%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json","utf8"))
+			logerror "Could not save file: %opsiTmpDir%\auditsoftwareOnClient_%PCName%.json"
+		endif
+		if errorsOccurredSinceMark = 0
+			comment "read file buffer ..."
+			set $softwareObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftware_%PCName%.json","utf8")
+			set $softwareOnClientObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json","utf8")
+		else
+			logerror "Abort due to save errors"
+			isFatalError "save file failed"
+		endif
+	endif
+	setloglevel = $Highloglevel$
+	if $debug_send$ = "true"
+		comment "we use debug_send: one servicall per object"
+		markErrorNumber
+		opsiservicecall_auditSoftwareOnClient_setObsolete
+		if errorsOccuredSinceMark > 0
+			isFatalError
+		endif
+		set $serviceMethod$ = "auditSoftware_createObjects"
+		set $softwareObjectList$ = jsonAsArrayToStringList($softwareObjectArray$)
+		for %aktObject% in $softwareObjectList$ do opsiservicecall_create_aktObject
+		if errorsOccuredSinceMark > 0
+			isFatalError
+		endif
+		set $serviceMethod$ = "auditSoftware_createObjects"
+		set $softwareObjectList$ = jsonAsArrayToStringList($softwareObjectArray$)
+		for %aktObject% in $softwareObjectList$ do opsiservicecall_create_aktObject
+		if errorsOccuredSinceMark > 0
+			isFatalError
+		endif
+	else
+		markErrorNumber
+		opsiservicecall_auditSoftwareOnClient_setObsolete
+		if errorsOccuredSinceMark > 0
+			isFatalError
+		endif
+		opsiservicecall_auditSoftware_createObjects
+		if errorsOccuredSinceMark > 0
+			isFatalError
+		endif
+		opsiservicecall_auditSoftwareOnClient_createObjects
+		if errorsOccuredSinceMark > 0
+			isFatalError
+		endif
+	endif
+	setloglevel = $Midloglevel$
+endif
+Files_del_temp
+
+; ---------- end of main program -------------------------
+
+
+[sub_getswdetails4_32]
+setloglevel=$Midloglevel$
+if not ("%aktkey%" = "")
+	set $installSize$ = "-1"
+	set $binaryName$ = ""
+	set $Language$ = ""
+	set $licenseKey$ = ""
+	set $winSoftwareId$ = "%aktkey%"
+	if not ($winSoftwareId$ = "") 
+		set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] DisplayVersion")
+		set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] displayName")
+		set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] binaryName")
+		set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] uninstallString")
+		if $usekeyfinder$ = "on"
+			set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
+		endif
+		
+		set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] binaryName")
+		if not($binaryName$ = "")
+			if FileExists($binaryName$)
+				set $VerInfoMap$ = getFileInfoMap($binaryName$)
+				set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
+				set $Language$ = LangCodeByHex($langCodeHex$)
+			endif
+		endif
+		sub_create_hash4
+	endif
+endif
+
+[sub_getswdetails4_64]
+setloglevel=$Midloglevel$
+if not ("%aktkey%" = "")
+	set $installSize$ = "-1"
+	set $binaryName$ = ""
+	set $Language$ = ""
+	set $licenseKey$ = ""
+	set $winSoftwareId$ = "%aktkey%"
+	if not ($winSoftwareId$ = "") 
+		set $Language$ = ""
+		set $binaryName$ = ""
+		set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\%aktkey%] DisplayVersion")
+		set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\%aktkey%] displayName")
+		set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\%aktkey%] uninstallString")
+		if $usekeyfinder$ = "on"
+			set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
+		endif
+		
+		set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\%aktkey%] binaryName")
+		if not($binaryName$ = "") 
+			if FileExists($binaryName$)
+				set $VerInfoMap$ = getFileInfoMap($binaryName$)
+				set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
+				set $Language$ = LangCodeByHex($langCodeHex$)
+			endif
+		endif
+		sub_create_hash4
+	endif
+endif
+
+[sub_get_windows_info]
+DefVar $CurrentVersionProductName$
+DefVar $CurrentVersionCSDVersion$
+DefVar $CurrentVersionProductId$
+DefVar $CurrentVersionCurrentVersion$
+DefStringList $localeMap$
+
+set $installSize$ = "-1"
+set $binaryName$ = ""
+
+; i.e. Windows 7 professional N
+Set $CurrentVersionProductName$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductName")
+; i.e. ServicePack 1
+Set $CurrentVersionCSDVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CSDVersion")
+; i.e. 00376-165-5790905-86892
+; http://wiki.lunarsoft.net/wiki/Product_IDs
+; xxxxx-yyy-zzzzzzz-zzzzz
+; xxxxx: microsoft product code (platform, build, language, and version of windows)
+; yyy:   channel id (OEM, Volume License, Retail, bundle/Not For Resale)
+Set $CurrentVersionProductId$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductId")
+; i.e. 6.1
+Set $CurrentVersionCurrentVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CurrentVersion")
+
+
+Set $winSoftwareId$  = "ms_windows_" + takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
+Set $displayVersion$ = $CurrentVersionCurrentVersion$
+Set $displayName$    = $CurrentVersionProductName$
+if not ($CurrentVersionCSDVersion$ = "")
+	Set $displayName$ = $displayName$ + " (" + $CurrentVersionCSDVersion$ + ")"
+endif
+Set $uninstallString$ = ""
+Set $name$ = $displayName$
+Set $version$ = $CurrentVersionCurrentVersion$
+Set $subversion$ = takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
+if $usekeyfinder$ = "on"
+	set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
+else
+	set $licenseKey$ = ""
+endif
+
+Set $localeMap$ = getLocaleInfoMap
+Set $Language$ = getValue("system_default_lang_region",$localeMap$)
+
+if (GetSystemType = "64 Bit System")
+	Set $architecture$ = "x64"
+else
+	Set $architecture$ = "x86"
+endif
+
+[sub_get_nt6_hotfix_info]
+setloglevel = $Highloglevel$
+Set $displayVersion$ = ""
+Set $uninstallString$ = ""
+Set $version$ = ""
+Set $subversion$ = ""
+set $licenseKey$ = ""
+set $installSize$ = "-1"
+set $binaryName$ = ""
+set $Language$ = LangCodeByHex("0x0000")
+
+set $resultlist$ = shellCall("wmic qfe get hotfixid")
+set $resultlist$ = getListContaining($resultlist$, "KB")
+for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
+
+[sub_process_nt6_hotfix_info]
+setloglevel=$Midloglevel$
+Set $winSoftwareId$  = trim("%akthotfix%")
+Set $displayName$    = trim("%akthotfix%")
+Set $name$ = $displayName$
+if (GetSystemType = "64 Bit System")
+	Set $architecture$ = "x64"
+else
+	Set $architecture$ = "x86"
+endif
+sub_create_hash4
+
+[sub_create_hash4]
+if $displayName$ = ""
+	set $name$ = $winSoftwareId$
+else
+	set $name$ = $displayName$
+endif
+set $version$ = $displayVersion$
+
+setloglevel = $Highloglevel$
+comment ""
+comment "next product is...."
+comment "$name$  ----------------= "+$name$
+comment "$version$ --------------= "+$version$
+comment "$subVersion$ -----------= "+$subVersion$
+comment "$language$ -------------= "+$language$
+comment "$architecture$ ---------= "+$architecture$
+comment "$windowsSoftwareId$ ----= "+$winSoftwareId$
+comment "$windowsDisplayName$ ---= "+$displayName$
+comment "$windowsDisplayVersion$ = "+$displayVersion$
+comment "$uninstallString$ ------= "+$uninstallString$
+comment "$installSize$ ----------= "+$installSize$
+comment "$displayVersion$ -------= "+$displayVersion$
+comment "$binaryName$ -----------= "+$binaryName$
+comment "$licenseKey$ -----------= "+$licenseKey$
+
+setloglevel = $Lowloglevel$
+
+set $softwareObject$ = "{}"
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"type","AuditSoftware")
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"name",$name$)
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"version",$version$)
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"subVersion",$subVersion$)
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"language",$language$)
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"architecture",$architecture$)
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsSoftwareId",$winSoftwareId$)
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayName",$displayName$)
+set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayVersion",$displayVersion$)
+set $softwareObject$ = jsonAsObjectSetValueByKey($softwareObject$,"installSize",$installSize$)
+set $softwareObjectList$ = addtolist($softwareObjectList$,$softwareObject$)
+
+set $softwareOnClientObject$ = "{}"
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"type","AuditSoftwareOnClient")
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"name",$name$)
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"version",$version$)
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"subVersion",$subVersion$)
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"language",$language$)
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"architecture",$architecture$)
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"clientId",$clientId$)
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"uninstallString",$uninstallString$)
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"binaryName",$binaryName$)
+set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"licenseKey",$licenseKey$)
+set $softwareOnClientObjectList$ = addtolist($softwareOnClientObjectList$,$softwareOnClientObject$)
+
+
+[Files_del_temp]
+delete "%opsiTmpDir%\swaudit_keys.ini"
+
+[opsiservicecall_auditSoftwareOnClient_setObsolete]
+"method": "auditSoftwareOnClient_setObsolete"
+"params": [
+          "$clientId$"
+          ]
+          
+
+[opsiservicecall_auditSoftware_createObjects]
+"method": "auditSoftware_createObjects"
+"params": [
+           '$softwareObjectArray$'
+          ]
+
+
+[opsiservicecall_auditSoftwareOnClient_createObjects]
+"method": "auditSoftwareOnClient_createObjects"
+"params": [
+           '$softwareOnClientObjectArray$'
+          ]
+
+[opsiservicecall_create_aktObject]
+"method": "$serviceMethod$"
+"params": [
+           '[%aktObject%]'
+          ]
+
+[Files_del_old]
+delete -f "%opsiTmpDir%\auditsoftware_%PCName%.json"
+delete -f "%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json"
+delete -f "%opsiTmpDir%\auditsoftware_%PCName%.txt"
+delete -f "%opsiTmpDir%\auditsoftwareOnClient_%PCName%.txt"
+
