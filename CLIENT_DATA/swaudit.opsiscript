@@ -85,12 +85,20 @@ set $Lowloglevel$ = "4"
 
 set $selectedMaxLogLevel$ = GetProductProperty("maxloglevel",$Highloglevel$)
 
-if $selectedMaxLogLevel$ INT< $Midloglevel$
-	setloglevel = $selectedMaxLogLevel$
-else
-	setloglevel = $Midloglevel$
+if $selectedMaxLogLevel$ INT< $Lowloglevel$
+	set $Lowloglevel$ = $selectedMaxLogLevel$
 endif
 
+if $selectedMaxLogLevel$ INT< $Midloglevel$
+	set $Midloglevel$ = $selectedMaxLogLevel$
+endif
+
+if $selectedMaxLogLevel$ INT< $Highloglevel$
+	set $Highloglevel$ = $selectedMaxLogLevel$
+endif
+
+
+setloglevel = $Midloglevel$
 
 Message "Running software audit..."
 ShowBitmap "%SCRIPTPATH%\swaudit.png" "Software Inventarisierung"
@@ -130,11 +138,7 @@ else
 	set $clientId$="%opsiserviceUser%"
 endif
 
-if $selectedMaxLogLevel$ INT< $Midloglevel$
-	setloglevel = $selectedMaxLogLevel$
-else
-	setloglevel = $Midloglevel$
-endif
+setloglevel = $Midloglevel$
 
 
 if $readfromfile$ = "off"
@@ -142,19 +146,11 @@ if $readfromfile$ = "off"
 		if $usekeyfinder$ = "on"
 			message "collecting license keys ..."
 			set $proccall$ = '"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "%opsiTmpDir%\" /file "swaudit_keys.ini"'
-			if $selectedMaxLogLevel$ INT< $Highloglevel$
-				setloglevel = $selectedMaxLogLevel$
-			else
-				setloglevel = $Highloglevel$
-			endif
+			setloglevel = $Highloglevel$
   	
 			set $exitcode$ = processcall($proccall$)
 			set $LicenseSections$ = GetSectionNames("%opsiTmpDir%\swaudit_keys.ini")
-			if $selectedMaxLogLevel$ INT< $Midloglevel$
-				setloglevel = $selectedMaxLogLevel$
-			else
-				setloglevel = $Midloglevel$
-			endif
+			setloglevel = $Midloglevel$
 		endif
 		if GetSystemType = "64 Bit System"
 			message "collecting 64 Bit products ..."
@@ -168,11 +164,7 @@ if $readfromfile$ = "off"
 		
 		message "collecting 32 Bit products ..."
 		set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
-		if $selectedMaxLogLevel$ INT< $Highloglevel$
-			setloglevel = $selectedMaxLogLevel$
-		else
-			setloglevel = $Highloglevel$
-		endif
+		setloglevel = $Highloglevel$
   	
 		
 		message "collecting 32 Bit product details ..."
@@ -180,30 +172,18 @@ if $readfromfile$ = "off"
 		set $subversion$ = ""
 		set $Language$ = ""
 		for %aktkey% in $uninstKeys$ do sub_getswdetails4_32
-		if $selectedMaxLogLevel$ INT< $Highloglevel$
-			setloglevel = $selectedMaxLogLevel$
-		else
-			setloglevel = $Highloglevel$
-		endif
+		setloglevel = $Highloglevel$
   	
 		message "collecting os details ..."
 		sub_get_windows_info
 		sub_create_hash4
-		if $selectedMaxLogLevel$ INT< $Midloglevel$
-			setloglevel = $selectedMaxLogLevel$
-		else
-			setloglevel = $Midloglevel$
-		endif
+		setloglevel = $Midloglevel$
   	
   	
 		if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
 			message "collecting hotfixes ..."
 			sub_get_nt6_hotfix_info
-			if $selectedMaxLogLevel$ INT< $Highloglevel$
-				setloglevel = $selectedMaxLogLevel$
-			else
-				setloglevel = $Highloglevel$
-			endif
+			setloglevel = $Highloglevel$
 		endif  ; nt6
 		;comment "convert object list to json array .."
 		;set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
@@ -214,20 +194,20 @@ if $readfromfile$ = "off"
 			sub_getswdetails4_os
 			
 			if $distrotype$ = "debian"
+				setloglevel = $Midloglevel$
 				set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
-				setloglevel = $Highloglevel$
 				for %aktline% in $outLines$ do sub_getswdetails4_deb
 				setloglevel=$Highloglevel$
 			endif  ; debian
 			if $distrotype$ = "suse"
+				setloglevel = $Midloglevel$
 				set $outLines$ = getOutstreamFromSection("shellInAnIcon_suse")
-				setloglevel = $Highloglevel$
 				for %aktline% in $outLines$ do sub_getswdetails4_suse
 				setloglevel=$Highloglevel$
 			endif  ; suse
 			if $distrotype$ = "redhat"
+				setloglevel = $Midloglevel$
 				set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
-				setloglevel = $Highloglevel$
 				for %aktline% in $outLines$ do sub_getswdetails4_redhat
 				setloglevel=$Highloglevel$
 			endif  ; redhat
@@ -237,16 +217,18 @@ if $readfromfile$ = "off"
 			isFatalError "Wrong OS"
 		endif ; linux
 	endif ; windows
+	setloglevel = $Midloglevel$
 	comment "convert object list to json array .."
 	set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
 	set $softwareOnClientObjectArray$ = jsonStringListToJsonArray($softwareOnClientObjectList$)
 else
 	comment "read from file - only for debugging"
-	setloglevel=7
+	setloglevel=$Highloglevel$
 	set $softwareObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftware_%PCName%.json","utf8")
 	set $softwareOnClientObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json","utf8")
 	set $write2file$ = "off"
 	set $usefilebuffer$ = "off"
+	setloglevel = $Midloglevel$
 endif
 if $write2file$ = "on"
 	message "writing results back to file ..."
@@ -258,6 +240,7 @@ if $write2file$ = "on"
 		logerror "Could not save file: %opsiTmpDir%\auditsoftwareOnClient_%PCName%.json"
 	endif
 else
+	setloglevel = $Midloglevel$
 	message "writing results back to service ..."
 	if $usefilebuffer$ = "on"
 		comment "use file buffer ..."
@@ -282,13 +265,10 @@ else
 	comment "mask single quotes by double single quotes before sending ...."
 	set $softwareObjectArray$ = stringReplace($softwareObjectArray$, "'", "''")
 	set $softwareOnClientObjectArray$ = stringReplace($softwareOnClientObjectArray$, "'", "''")
-	if $selectedMaxLogLevel$ INT< $Highloglevel$
-		setloglevel = $selectedMaxLogLevel$
-	else
-		setloglevel = $Highloglevel$
-	endif
+	setloglevel = $Highloglevel$
 
 	if $debug_send$ = "true"
+		setloglevel = $Midloglevel$
 		comment "we use debug_send: one servicall per object"
 		markErrorNumber
 		opsiservicecall_auditSoftwareOnClient_setObsolete
@@ -308,6 +288,7 @@ else
 			isFatalError
 		endif
 	else
+		setloglevel = $Highloglevel$
 		markErrorNumber
 		opsiservicecall_auditSoftwareOnClient_setObsolete
 		if errorsOccuredSinceMark > 0
@@ -322,11 +303,6 @@ else
 			isFatalError
 		endif
 	endif
-	if $selectedMaxLogLevel$ INT< $Midloglevel$
-		setloglevel = $selectedMaxLogLevel$
-	else
-		setloglevel = $Midloglevel$
-	endif
 
 endif
 Files_del_temp
@@ -335,11 +311,7 @@ Files_del_temp
 
 
 [sub_getswdetails4_32]
-if $selectedMaxLogLevel$ INT< $Midloglevel$
-	setloglevel = $selectedMaxLogLevel$
-else
-	setloglevel = $Midloglevel$
-endif
+setloglevel = $Midloglevel$
 
 ; use EscapeString to handle keys with quotation
 set $aktkey$ = EscapeString:%aktkey%
@@ -373,11 +345,7 @@ if not ($aktkey$ = "")
 endif
 
 [sub_getswdetails4_64]
-if $selectedMaxLogLevel$ INT< $Midloglevel$
-	setloglevel = $selectedMaxLogLevel$
-else
-	setloglevel = $Midloglevel$
-endif
+setloglevel = $Midloglevel$
 
 ; use EscapeString to handle keys with quotation
 set $aktkey$ = EscapeString:%aktkey%
@@ -471,11 +439,7 @@ else
 endif
 
 [sub_get_nt6_hotfix_info]
-if $selectedMaxLogLevel$ INT< $Highloglevel$
-	setloglevel = $selectedMaxLogLevel$
-else
-	setloglevel = $Highloglevel$
-endif
+setloglevel = $Highloglevel$
 
 Set $displayVersion$ = ""
 Set $uninstallString$ = ""
@@ -491,11 +455,7 @@ set $resultlist$ = getListContaining($resultlist$, "KB")
 for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
 
 [sub_process_nt6_hotfix_info]
-if $selectedMaxLogLevel$ INT< $Midloglevel$
-	setloglevel = $selectedMaxLogLevel$
-else
-	setloglevel = $Midloglevel$
-endif
+setloglevel = $Midloglevel$
 
 Set $winSoftwareId$  = trim("%akthotfix%")
 Set $displayName$    = trim("%akthotfix%")
@@ -518,11 +478,7 @@ if $version$ = ""
 	set $version$ = $displayVersion$
 endif
 
-if $selectedMaxLogLevel$ INT< $Highloglevel$
-	setloglevel = $selectedMaxLogLevel$
-else
-	setloglevel = $Highloglevel$
-endif
+setloglevel = $Highloglevel$
 
 
 comment "Product: "+$name$+" Version: "+$version$+" Archticture: "+$architecture$
@@ -542,11 +498,7 @@ comment "Product: "+$name$+" Version: "+$version$+" Archticture: "+$architecture
 ;comment "$binaryName$ -----------= "+$binaryName$
 ;comment "$licenseKey$ -----------= "+$licenseKey$
 
-if $selectedMaxLogLevel$ INT< $Lowloglevel$
-	setloglevel = $selectedMaxLogLevel$
-else
-	setloglevel = $Lowloglevel$
-endif
+setloglevel = $Lowloglevel$
 
 
 ; trim entries to DB field length

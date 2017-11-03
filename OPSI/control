@@ -1,5 +1,5 @@
 [Package]
-version: 1
+version: 2
 depends: 
 incremental: False
 
@@ -64,6 +64,13 @@ description: ONLY DEBUG - Send data using one serviceall per object
 default: False
 
 [Changelog]
+swaudit (4.0.7.6-2) stable; urgency=low
+
+  * use of property 'max loglevel' modified
+
+-- detlef oertel <d.oertel@uib.de>  Wed, 06 Sep 2017 15:00:00 +0100
+
+
 swaudit (4.0.7.6-1) stable; urgency=low
 
   * fix version in Linux swaudit
