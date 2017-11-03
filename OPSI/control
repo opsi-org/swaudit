@@ -9,7 +9,7 @@ id: swaudit
 name: Client software inventory
 description: Software inventory based on uninstall informations from windows registry
 advice: opsi-script >= 4.11.6.4 needed
-version: 4.0.7.1
+version: 4.0.7.2
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -44,7 +44,7 @@ type: unicode
 name: readfromfile
 multivalue: False
 editable: False
-description: ONLY DEBUG - do not use if you are not shure what you doing! (Do not make a audit but read values from c:\tmp and send them)
+description: ONLY DEBUG - do not use if you are not shure what you doing! (Do not make a audit but read values from c:\opsi.org\tmp and send them)
 values: ["off", "on"]
 default: ["off"]
 
@@ -55,6 +55,13 @@ description: ONLY DEBUG - Send data using one serviceall per object
 default: False
 
 [Changelog]
+swaudit (4.0.7.2-1) stable; urgency=low
+
+  * fix for readfromfile
+  * mask single quotes by double single quotes before sending
+
+-- detlef oertel <d.oertel@uib.de>  Wed, 12 Oct 2016 15:00:00 +0100
+
 swaudit (4.0.7.1-1) stable; urgency=low
 
   * code cleanup

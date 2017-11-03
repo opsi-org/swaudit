@@ -55,7 +55,7 @@ set $ProductId$ = "swaudit"
 Set $OpsiRegKey$ = "HKLM\SOFTWARE\opsi.org"
 Set $uninstkey$="HKEY_LOCAL_MACHINE\software\microsoft\windows\currentversion\uninstall"
 set $clientId$="%HostID%"
-set $readfromfile$ = "false"
+set $readfromfile$ = GetProductProperty("readfromfile","off")
 set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
 set $usekeyfinder$ = GetProductProperty("usekeyfinder","off")
 set $debug_send$ = GetProductProperty("debug_send","false")
@@ -97,7 +97,7 @@ setloglevel = $Midloglevel$
 
 
 
-if $readfromfile$ = "false"
+if $readfromfile$ = "off"
 	if $usekeyfinder$ = "on"
 		message "collecting license keys ..."
 		set $proccall$ = '"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "%opsiTmpDir%\" /file "swaudit_keys.ini"'
@@ -144,6 +144,8 @@ else
 	setloglevel=7
 	set $softwareObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftware_%PCName%.json","utf8")
 	set $softwareOnClientObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json","utf8")
+	set $write2file$ = "off"
+	set $usefilebuffer$ = "off"
 endif
 if $write2file$ = "on"
 	message "writing results back to file ..."
@@ -176,6 +178,9 @@ else
 			isFatalError "save file failed"
 		endif
 	endif
+	comment "mask single quotes by double single quotes before sending ...."
+	set $softwareObjectArray$ = stringReplace($softwareObjectArray$, "'", "''")
+	set $softwareOnClientObjectArray$ = stringReplace($softwareOnClientObjectArray$, "'", "''")
 	setloglevel = $Highloglevel$
 	if $debug_send$ = "true"
 		comment "we use debug_send: one servicall per object"
@@ -190,8 +195,8 @@ else
 		if errorsOccuredSinceMark > 0
 			isFatalError
 		endif
-		set $serviceMethod$ = "auditSoftware_createObjects"
-		set $softwareObjectList$ = jsonAsArrayToStringList($softwareObjectArray$)
+		set $serviceMethod$ = "auditSoftwareOnClient_createObjects"
+		set $softwareObjectList$ = jsonAsArrayToStringList($softwareOnClientObjectArray$)
 		for %aktObject% in $softwareObjectList$ do opsiservicecall_create_aktObject
 		if errorsOccuredSinceMark > 0
 			isFatalError
