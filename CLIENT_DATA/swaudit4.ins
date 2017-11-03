@@ -4,7 +4,7 @@
 
 
 [actions]
-requiredWinstVersion >= "4.11.3.2"
+requiredWinstVersion >= "4.11.3.11"
 ScriptErrorMessages = off
 DefVar $Highloglevel$
 DefVar $Midloglevel$
@@ -425,10 +425,10 @@ set $softwareHashlist$ = addtolist($softwareHashlist$, "name="+strPart($name$,"1
 set $softwareHashlist$ = addtolist($softwareHashlist$, "version="+strPart($version$,"1","99"))
 set $softwareHashlist$ = addtolist($softwareHashlist$, "subVersion="+strPart($subversion$,"1","99"))
 set $softwareHashlist$ = addtolist($softwareHashlist$, "language="+strPart($Language$,"1","9"))
-set $softwareHashlist$ = addtolist($softwareHashlist$, "architecture="+$architecture$)
-set $softwareHashlist$ = addtolist($softwareHashlist$, "windowsSoftwareId="+$winSoftwareId$)
-set $softwareHashlist$ = addtolist($softwareHashlist$, "windowsDisplayName="+$displayName$)
-set $softwareHashlist$ = addtolist($softwareHashlist$, "windowsDisplayVersion="+$displayVersion$)
+set $softwareHashlist$ = addtolist($softwareHashlist$, "architecture="+strPart($architecture$,"1","3"))
+set $softwareHashlist$ = addtolist($softwareHashlist$, "windowsSoftwareId="+strPart($winSoftwareId$,"1","99"))
+set $softwareHashlist$ = addtolist($softwareHashlist$, "windowsDisplayName="+strPart($displayName$,"1","99"))
+set $softwareHashlist$ = addtolist($softwareHashlist$, "windowsDisplayVersion="+strPart($displayVersion$,"1","99"))
 set $softwareHashlist$ = addtolist($softwareHashlist$, "installSize="+$installSize$)
 
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "[newmap]")
@@ -437,12 +437,12 @@ set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "name="+s
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "version="+strPart($version$,"1","99"))
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "subVersion="+strPart($subversion$,"1","99"))
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "language="+strPart($Language$,"1","9"))
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "architecture="+$architecture$)
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "clientId="+$clientId$)
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "uninstallString="+$uninstallString$)
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "binaryName="+$binaryName$)
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "architecture="+strPart($architecture$,"1","3"))
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "clientId="+strPart($clientId$,"1","254"))
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "uninstallString="+strPart($uninstallString$,"1","199"))
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "binaryName="+strPart($binaryName$,"1","99"))
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "usageFrequency="+$usageFrequency$)
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "licenseKey="+$licenseKey$)
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "licenseKey="+strPart($licenseKey$,"1","254"))
 if not($lastUsed$ = "")
 	set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "lastUsed="+$lastUsed$)
 endif
