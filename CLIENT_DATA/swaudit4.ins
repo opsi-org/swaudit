@@ -4,7 +4,7 @@
 
 
 [actions]
-requiredWinstVersion >= "4.10.8.3"
+requiredWinstVersion >= "4.11.3.2"
 DefVar $Highloglevel$
 DefVar $Midloglevel$
 DefVar $Lowloglevel$
@@ -27,7 +27,7 @@ DefVar $name$
 DefVar $version$
 DefVar $subversion$
 DefVar $architecture$
-DefVar $opsiVer$
+;DefVar $opsiVer$
 DefVar $SysArchitecture$
 DefVar $binaryName$
 DefVar $lastUsed$
@@ -60,7 +60,7 @@ Set $OpsiRegKey$ = "HKLM\SOFTWARE\opsi.org"
 Set $uninstkey$="HKEY_LOCAL_MACHINE\software\microsoft\windows\currentversion\uninstall"
 Set $extendedkey$="HKEY_LOCAL_MACHINE\software\microsoft\windows\currentversion\app management\arpcache"
 set $clientId$="%HostID%"
-set $extended_search$ = GetProductProperty("extended_search","on")
+set $extended_search$ = GetProductProperty("extended_search","off")
 set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
 set $usekeyfinder$ = GetProductProperty("usekeyfinder","on")
 set $readfromfile$ = GetProductProperty("readfromfile","off")
@@ -82,285 +82,91 @@ if GetMsVersionInfo < "5.0"
 	isFatalError
 endif
 
-message "detecting opsi version ..."
-;opsiservicecall_authenticated /username $User$ /password $Pass$ /serviceurl $serviceUrl$
-set $resultlist$ = getReturnListFromSection('opsiservicecall_getPossibleMethods_listOfHashes')
-if "" = takeFirstStringContaining($resultlist$, "auditSoftwareOnClient_createObjects")
-	set $opsiVer$ = "3"
-else
-	set $opsiVer$ = "4"
-endif
-
 comment "detect if we run in opsi service mode"
 if "%installingProdName%" = ""
 	comment " we running standalone"
 	set $write2file$ = "on"
-	set $opsiVer$ = "4"
 else
+	comment " we run in opsi service mode"
 	set $write2file$ = "off"
 endif
 
 setloglevel = $Highloglevel$
 
-if $opsiVer$ = "3"
-	set $swAuditInfoStr$ = "{"
+if $readfromfile$ = "off"
+	if $usekeyfinder$ = "on"
+		message "collecting license keys ..."
+		Files_del_temp
+		Winbatch_start_keyfinder
+		set $LicenseSections$ = GetSectionNames("c:\opsi.org\tmp\swaudit_keys.ini")
+	endif
 	if GetSystemType = "64 Bit System"
 		message "collecting 64 Bit products ..."
-		set $uninstKeys$ = GetOutStreamFromSection('execWith_getuninstallkeys %systemroot%\cmd64.exe /C')
+		set $uninstKeys$ = getRegistryKeyList64($uninstKey$)
 		message "collecting 64 Bit product details ..."
 		set $architecture$ = "x64"
 		set $subversion$ = ""
 		set $Language$ = ""
-		for %aktkey% in $uninstKeys$ do sub_getswdetails3_64
-		setloglevel=$Highloglevel$
+		for %aktkey% in $uninstKeys$ do sub_getswdetails4_64
 	endif
-
+	
 	message "collecting 32 Bit products ..."
-	if GetMsVersionInfo = "5.0"
-		comment "we are on win2k"
-		DosInAnIcon_getuninstallkeys
-		setloglevel = $Lowloglevel$
-		set $resultlist$ = loadUnicodeTextFile("c:\tmp\myreg.reg")
-		set $resultlist$ = getListContaining($resultlist$,$uninstkey$)
-		for %aktkey% in $resultlist$ do sub_remove_brackets
-	else
-		set $uninstKeys$ = GetOutStreamFromSection('execWith_getuninstallkeys cmd.exe /C')
-		setloglevel = $Lowloglevel$
-		set $uninstKeys$ = getListContaining($uninstKeys$,$uninstkey$)
-	endif
+	set $uninstKeys$ = getRegistryKeyList32($uninstKey$)
 	setloglevel = $Highloglevel$
-
+	
 	message "collecting 32 Bit product details ..."
-	for %aktkey% in $uninstKeys$ do sub_getswdetails3
+	set $architecture$ = "x86"
+	set $subversion$ = ""
+	set $Language$ = ""
+	for %aktkey% in $uninstKeys$ do sub_getswdetails4_32
+	setloglevel=$Highloglevel$
 	message "collecting os details ..."
 	sub_get_windows_info
-	sub_create_hash3
+	sub_create_hash4
+	setloglevel=$Highloglevel$
 	if GetMsVersionInfo >= "6"
 		message "collecting hotfixes ..."
 		sub_get_nt6_hotfix_info
+		setloglevel = $Highloglevel$
 	endif
-	set $swAuditInfoStr$ = $swAuditInfoStr$+"}"
-	
+else
+	comment "read from file - only for debugging"
+	setloglevel=7
+	set $softwareHashlist$ = loadUnicodeTextFile("c:\opsi.org\tmp\auditsoftware_%PCName%.txt")
+	set $softwareOnClientHashlist$ = loadUnicodeTextFile("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt")
+endif
+if $write2file$ = "on"
+	message "writing results back to file ..."
+	Files_del_old
+	for %s% in $softwareHashlist$ do sub_build_auditsoftware
+	for %s% in $softwareOnClientHashlist$ do sub_build_auditSoftwareOnClient
+else
 	message "writing results back to service ..."
+	if $usefilebuffer$ = "on"
+		Files_del_old
+		for %s% in $softwareHashlist$ do sub_build_auditsoftware
+		for %s% in $softwareOnClientHashlist$ do sub_build_auditSoftwareOnClient
+		set $softwareHashlist$ = loadTextFile("c:\opsi.org\tmp\auditsoftware_%PCName%.txt")
+		set $softwareOnClientHashlist$ = loadTextFile("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt")
+	endif
+	setloglevel = $Midloglevel$
 	markErrorNumber
-	setloglevel = $Lowloglevel$
-	opsiservicecall_setSoftwareInformation
+	opsiservicecall_auditSoftwareOnClient_setObsolete
+	if errorsOccuredSinceMark > 0
+		isFatalError
+	endif
+	OpsiServiceHashList_auditSoftware_createObjects
+	if errorsOccuredSinceMark > 0
+		isFatalError
+	endif
+	OpsiServiceHashList_auditSoftwareOnClient_createObjects
 	if errorsOccuredSinceMark > 0
 		isFatalError
 	endif
 endif
+Files_del_temp
 
-if $opsiVer$ = "4"
-	if $readfromfile$ = "off"
-		if $usekeyfinder$ = "on"
-			message "collecting license keys ..."
-			Files_del_temp
-			Winbatch_start_keyfinder
-			set $LicenseSections$ = GetSectionNames("c:\tmp\swaudit_keys.ini")
-		endif
-		if GetSystemType = "64 Bit System"
-			message "collecting 64 Bit products ..."
-			set $uninstKeys$ = GetOutStreamFromSection('execWith_getuninstallkeys %systemroot%\cmd64.exe /C')
-			set $uninstKeys$ = getListContaining($uninstKeys$,$uninstkey$)
-			message "collecting 64 Bit product details ..."
-			set $architecture$ = "x64"
-			set $subversion$ = ""
-			set $Language$ = ""
-			for %aktkey% in $uninstKeys$ do sub_getswdetails4_64
-		endif
-		
-		message "collecting 32 Bit products ..."
-		if GetMsVersionInfo = "5.0"
-			comment "we are on win2k"
-			DosInAnIcon_getuninstallkeys
-			setloglevel = $Lowloglevel$
-			set $resultlist$ = loadUnicodeTextFile("c:\tmp\myreg.reg")
-			set $resultlist$ = getListContaining($resultlist$,$uninstkey$)
-			for %aktkey% in $resultlist$ do sub_remove_brackets
-		else
-			set $uninstKeys$ = GetOutStreamFromSection('execWith_getuninstallkeys cmd.exe /C')
-			setloglevel = $Lowloglevel$
-			set $uninstKeys$ = getListContaining($uninstKeys$,$uninstkey$)
-		endif
-		setloglevel = $Highloglevel$
-  	
-		message "collecting 32 Bit product details ..."
-		set $architecture$ = "x86"
-		set $subversion$ = ""
-		set $Language$ = ""
-		for %aktkey% in $uninstKeys$ do sub_getswdetails4
-		setloglevel=$Highloglevel$
-		message "collecting os details ..."
-		sub_get_windows_info
-		sub_create_hash4
-		setloglevel=$Highloglevel$
-		if GetMsVersionInfo >= "6"
-			message "collecting hotfixes ..."
-			sub_get_nt6_hotfix_info
-			setloglevel = $Highloglevel$
-		endif
-	else
-		comment "read from file - only for debugging"
-		setloglevel=7
-		set $softwareHashlist$ = loadUnicodeTextFile("c:\tmp\auditsoftware_%PCName%.txt")
-		set $softwareOnClientHashlist$ = loadUnicodeTextFile("c:\tmp\auditsoftwareOnClient_%PCName%.txt")
-		;set $softwareHashlist$ = loadTextFile("c:\tmp\auditsoftware_%PCName%.txt")
-		;set $softwareOnClientHashlist$ = loadTextFile("c:\tmp\auditsoftwareOnClient_%PCName%.txt")
-	endif
-	if $write2file$ = "on"
-		message "writing results back to file ..."
-		Files_del_old
-		;set $tmp$ = composeString($softwareHashlist$,"###")
-		for %s% in $softwareHashlist$ do sub_build_auditsoftware
-		;for %s% in $softwareHashlist$ do Patchtextfile_auditsoftware "c:\tmp\auditsoftware_%PCName%.txt"
-		;Patchtextfile_auditsoftware "c:\tmp\auditsoftware_%PCName%.txt"
-		;set $tmp$ = composeString($softwareOnClientHashlist$,"###")
-		for %s% in $softwareOnClientHashlist$ do sub_build_auditSoftwareOnClient
-		;for %s% in $softwareOnClientHashlist$ do Patchtextfile_auditSoftwareOnClient "c:\tmp\auditsoftwareOnClient_%PCName%.txt"
-		;Patchtextfile_auditSoftwareOnClient "c:\tmp\auditsoftwareOnClient_%PCName%.txt"
-	else
-		message "writing results back to service ..."
-		if $usefilebuffer$ = "on"
-			Files_del_old
-			for %s% in $softwareHashlist$ do sub_build_auditsoftware
-			for %s% in $softwareOnClientHashlist$ do sub_build_auditSoftwareOnClient
-			;for %s% in $softwareHashlist$ do Patchtextfile_auditsoftware "c:\tmp\auditsoftware_%PCName%.txt"
-			;for %s% in $softwareOnClientHashlist$ do Patchtextfile_auditSoftwareOnClient "c:\tmp\auditsoftwa
-			set $softwareHashlist$ = loadTextFile("c:\tmp\auditsoftware_%PCName%.txt")
-			set $softwareOnClientHashlist$ = loadTextFile("c:\tmp\auditsoftwareOnClient_%PCName%.txt")
-		endif
-		setloglevel = $Midloglevel$
-		markErrorNumber
-		opsiservicecall_auditSoftwareOnClient_setObsolete
-		if errorsOccuredSinceMark > 0
-			isFatalError
-		endif
-		OpsiServiceHashList_auditSoftware_createObjects
-		if errorsOccuredSinceMark > 0
-			isFatalError
-		endif
-		OpsiServiceHashList_auditSoftwareOnClient_createObjects
-		if errorsOccuredSinceMark > 0
-			isFatalError
-		endif
-	endif
-	Files_del_temp
-endif
-
-[sub_getswdetails3]
-setloglevel=$Midloglevel$
-if not ("%aktkey%" = "")
-	set $winSoftwareId$ = takeString(6,splitString("%aktkey%",'\'))
-	if not ($winSoftwareId$ = "") 
-		set $installSize$ = "-1"
-		set $usageFrequency$ = "-1"
-		set $binaryName$ = ""
-		set $lastUsed$ = ""
-		set $Language$ = ""
-		set $displayVersion$ = GetRegistrystringvalue ("[%aktkey%] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue ("[%aktkey%] displayName")
-		set $Language$ = GetRegistrystringvalue ("[%aktkey%] Language")
-		set $uninstallString$ = GetRegistrystringvalue ("[%aktkey%] uninstallString")
-		;set $uninstallString$ = composeString(splitString($uninstallString$,'"'),'\""')
-		if $extended_search$ = "on"
-			set $SlowInfoMap$ = GetSlowInfoMap($winSoftwareId$,"off")
-			if count($SlowInfoMap$) > "0"
-				set $binaryName$ = getValue("binaryName",$SlowInfoMap$)
-				set $installSize$ = getValue("installSize",$SlowInfoMap$)
-				if $installSize$ = ""
-					set $installSize$ = "-1"
-				endif
-				set $lastUsed$ = getValue("lastUsed",$SlowInfoMap$)
-				set $usageFrequency$ = getValue("usageFrequency",$SlowInfoMap$)
-				if $usageFrequency$ = ""
-					set $usageFrequency$ = "-1"
-				endif
-				set $lastUsed$ = getValue("lastUsed",$SlowInfoMap$)
-				if not($binaryName$ = "")
-					if FileExists($binaryName$)
-						set $VerInfoMap$ = getFileInfoMap($binaryName$)
-						set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
-						set $Language$ = LangCodeByHex($langCodeHex$)
-					endif
-				endif
-			endif
-		endif
-		sub_create_hash3
-	endif
-endif
-
-[sub_getswdetails3_64]
-setloglevel=$Midloglevel$
-if not ("%aktkey%" = "")
-	set $winSoftwareId$ = takeString(6,splitString("%aktkey%",'\'))
-	if not ($winSoftwareId$ = "") 
-		set $installSize$ = "-1"
-		set $usageFrequency$ = "-1"
-		set $binaryName$ = ""
-		set $lastUsed$ = ""
-		set $Language$ = ""
-		set $displayVersion$ = GetRegistrystringvalue64 ("[%aktkey%] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue64 ("[%aktkey%] displayName")
-		set $Language$ = GetRegistrystringvalue64 ("[%aktkey%] Language")
-		set $uninstallString$ = GetRegistrystringvalue64 ("[%aktkey%] uninstallString")
-		;set $uninstallString$ = composeString(splitString($uninstallString$,'"'),'\""')
-		
-		if $extended_search$ = "on"
-			set $SlowInfoMap$ = GetSlowInfoMap($winSoftwareId$,"on")
-			if count($SlowInfoMap$) > "0"
-				set $binaryName$ = getValue("binaryName",$SlowInfoMap$)
-				set $installSize$ = getValue("installSize",$SlowInfoMap$)
-				if $installSize$ = ""
-					set $installSize$ = "-1"
-				endif
-				set $lastUsed$ = getValue("lastUsed",$SlowInfoMap$)
-				set $usageFrequency$ = getValue("usageFrequency",$SlowInfoMap$)
-				if $usageFrequency$ = ""
-					set $usageFrequency$ = "-1"
-				endif
-				set $lastUsed$ = getValue("lastUsed",$SlowInfoMap$)
-				if not($binaryName$ = "")
-					if FileExists($binaryName$)
-						set $VerInfoMap$ = getFileInfoMap($binaryName$)
-						set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
-						set $Language$ = LangCodeByHex($langCodeHex$)
-					endif
-				endif
-			endif
-		endif
-		sub_create_hash3
-	endif
-endif
-
-[sub_create_hash3]
-setloglevel = $Highloglevel$
-comment "next product is...."
-comment "$displayName$ = "+$displayName$
-comment "$softwareId$ = "+$winSoftwareId$
-comment "$uninstallString$ = "+$uninstallString$
-comment "$installSize$ = "+$installSize$
-comment "$displayVersion$ = "+$displayVersion$
-comment "$binaryName$ = "+$binaryName$
-setloglevel = $Lowloglevel$
-; collecting the 'usage frequence' and 'last used' may be illegal according to the laws about employee data privacy
-set $lastUsed$ = ""
-set $usageFrequency$ = "-1"
-
-if not ($swAuditInfoStr$ = "{")
-	set $swAuditInfoStr$ = $swAuditInfoStr$+","
-endif
-set $tmp$ = convert2jsonstr('"'+$winSoftwareId$+'"')+': {'
-set $tmp$ = $tmp$+convert2jsonstr("displayName")+':'+convert2jsonstr('"'+$displayName$+'"')+','
-set $tmp$ = $tmp$+convert2jsonstr("uninstallString")+':'+convert2jsonstr('"'+RegString($uninstallString$)+'"')+','
-set $tmp$ = $tmp$+convert2jsonstr("softwareId")+':'+convert2jsonstr('"'+$winSoftwareId$+'"')+','
-set $tmp$ = $tmp$+convert2jsonstr("usageFrequency")+':'+convert2jsonstr($usageFrequency$)+','
-set $tmp$ = $tmp$+convert2jsonstr("installSize")+':'+convert2jsonstr($installSize$)+','
-set $tmp$ = $tmp$+convert2jsonstr("lastUsed")+':'+convert2jsonstr('"'+$lastUsed$+'"')+','
-set $tmp$ = $tmp$+convert2jsonstr("displayVersion")+':'+convert2jsonstr('"'+$displayVersion$+'"')+','
-set $tmp$ = $tmp$+convert2jsonstr("binaryName")+':'+convert2jsonstr('"'+RegString($binaryName$)+'"')+'}'
-set $swAuditInfoStr$ = $swAuditInfoStr$+$tmp$
-
-[sub_getswdetails4]
+[sub_getswdetails4_32]
 setloglevel=$Midloglevel$
 if not ("%aktkey%" = "")
 	set $installSize$ = "-1"
@@ -368,15 +174,15 @@ if not ("%aktkey%" = "")
 	set $binaryName$ = ""
 	set $lastUsed$ = ""
 	set $Language$ = ""
-	set $winSoftwareId$ = takeString(6,splitString("%aktkey%",'\'))
+	set $winSoftwareId$ = "%aktkey%"
 	if not ($winSoftwareId$ = "") 
-		set $displayVersion$ = GetRegistrystringvalue ("[%aktkey%] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue ("[%aktkey%] displayName")
-		set $binaryName$ = GetRegistrystringvalue ("[%aktkey%] binaryName")
-		set $uninstallString$ = GetRegistrystringvalue ("[%aktkey%] uninstallString")
-		set $licenseKey$ = GetValueFromInifile("c:\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
+		set $displayVersion$ = GetRegistrystringvalue32("["+$uninstKey$+"\%aktkey%] DisplayVersion")
+		set $displayName$ = GetRegistrystringvalue32("["+$uninstKey$+"\%aktkey%] displayName")
+		set $binaryName$ = GetRegistrystringvalue32("["+$uninstKey$+"\%aktkey%] binaryName")
+		set $uninstallString$ = GetRegistrystringvalue32("["+$uninstKey$+"\%aktkey%] uninstallString")
+		set $licenseKey$ = GetValueFromInifile("c:\opsi.org\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
 		
-		set $binaryName$ = GetRegistrystringvalue ("[%aktkey%] binaryName")
+		set $binaryName$ = GetRegistrystringvalue ("["+$uninstKey$+"\%aktkey%] binaryName")
 		if not($binaryName$ = "")
 			if FileExists($binaryName$)
 				set $VerInfoMap$ = getFileInfoMap($binaryName$)
@@ -424,16 +230,16 @@ if not ("%aktkey%" = "")
 	set $lastUsed$ = ""
 	set $binaryName$ = ""
 	set $Language$ = ""
-	set $winSoftwareId$ = takeString(6,splitString("%aktkey%",'\'))
+	set $winSoftwareId$ = "%aktkey%"
 	if not ($winSoftwareId$ = "") 
 		set $Language$ = ""
 		set $binaryName$ = ""
-		set $displayVersion$ = GetRegistrystringvalue64 ("[%aktkey%] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue64 ("[%aktkey%] displayName")
-		set $uninstallString$ = GetRegistrystringvalue64 ("[%aktkey%] uninstallString")
-		set $licenseKey$ = GetValueFromInifile("c:\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
+		set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\%aktkey%] DisplayVersion")
+		set $displayName$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\%aktkey%] displayName")
+		set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\%aktkey%] uninstallString")
+		set $licenseKey$ = GetValueFromInifile("c:\opsi.org\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
 		
-		set $binaryName$ = GetRegistrystringvalue64 ("[%aktkey%] binaryName")
+		set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\%aktkey%] binaryName")
 		if not($binaryName$ = "") 
 			if FileExists($binaryName$)
 				set $VerInfoMap$ = getFileInfoMap($binaryName$)
@@ -525,7 +331,7 @@ Set $uninstallString$ = ""
 Set $name$ = $displayName$
 Set $version$ = $CurrentVersionCurrentVersion$
 Set $subversion$ = takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
-set $licenseKey$ = GetValueFromInifile("c:\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
+set $licenseKey$ = GetValueFromInifile("c:\opsi.org\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
 
 Set $localeMap$ = getLocaleInfoMap
 ;(string  19)system_default_lang_region=de-DE
@@ -565,11 +371,7 @@ if (GetSystemType = "64 Bit System")
 else
 	Set $architecture$ = "x86"
 endif
-if $opsiVer$ = "4"
-	sub_create_hash4
-else
-	sub_create_hash3
-endif
+sub_create_hash4
 
 [DosInAnIcon_get_nt6_hofixes]
 @echo off
@@ -577,28 +379,17 @@ wmic qfe get hotfixid
 
 
 [sub_create_hash4]
-
-; eliminate '
-;set $displayName$ = takeString(0, splitString($displayName$, "'")) 
-
-
 if $displayName$ = ""
 	set $name$ = $winSoftwareId$
 else
 	set $name$ = $displayName$
 endif
 set $version$ = $displayVersion$
-;; workaround for bug #354
-;if $version$ = "0"
-;	set $version$ = ""
-;endif
 
 setloglevel = $Highloglevel$
 comment ""
 comment "next product is...."
 comment "$name$  --------------= "+$name$
-
-;set $name$ = takeString(0, splitString($name$, "'")) 
 
 ;comment "corrected name ---------
 comment "$version$ ------------= "+$version$
@@ -662,7 +453,7 @@ reg query $uninstkey$
 
 [DosInAnIcon_getuninstallkeys]
 @echo off
-regedit /e "c:\tmp\myreg.reg" $uninstkey$
+regedit /e "c:\opsi.org\tmp\myreg.reg" $uninstkey$
 
 [sub_remove_brackets]
 set $tmp$ = takeFirstStringContaining(splitstring("%aktkey%","["), $uninstkey$)
@@ -670,10 +461,10 @@ set $tmp$ = takeFirstStringContaining(splitstring($tmp$,"]"), $uninstkey$)
 set $uninstkeys$ = addtolist($uninstkeys$, $tmp$)
 
 [Winbatch_start_keyfinder]
-"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "c:\tmp\" /file "swaudit_keys.ini"
+"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "c:\opsi.org\tmp\" /file "swaudit_keys.ini"
 
 [Files_del_temp]
-delete "c:\tmp\swaudit_keys.ini"
+del "c:\opsi.org\tmp\swaudit_keys.ini"
 
 [opsiservicecall_authenticated]
 "method": "authenticated"
@@ -716,7 +507,7 @@ delete "c:\tmp\swaudit_keys.ini"
 [sub_build_auditsoftware]
 set $element$ = EscapeString:%s%
 set $line$ = composeString(splitstring($element$, "'"), "''")
-Patchtextfile_auditsoftware "c:\tmp\auditsoftware_%PCName%.txt"
+Patchtextfile_auditsoftware "c:\opsi.org\tmp\auditsoftware_%PCName%.txt"
 
 [Patchtextfile_auditsoftware]
 AppendLine '$line$'
@@ -724,11 +515,11 @@ AppendLine '$line$'
 [sub_build_auditSoftwareOnClient]
 set $element$ = EscapeString:%s%
 set $line$ = composeString(splitstring($element$, "'"), "''")
-Patchtextfile_auditSoftwareOnClient "c:\tmp\auditsoftwareOnClient_%PCName%.txt"
+Patchtextfile_auditSoftwareOnClient "c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt"
 
 [Patchtextfile_auditSoftwareOnClient]
 AppendLine '$line$'
 
 [Files_del_old]
-delete -f "c:\tmp\\auditsoftware_%PCName%.txt"
-delete -f "c:\tmp\auditsoftwareOnClient_%PCName%.txt"
+del -f "c:\opsi.org\tmp\auditsoftware_%PCName%.txt"
+del -f "c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt"

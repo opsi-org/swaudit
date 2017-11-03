@@ -1,5 +1,5 @@
 [Package]
-version: 15
+version: 16
 depends: 
 incremental: False
 
@@ -28,7 +28,7 @@ multivalue: False
 editable: False
 description: Search for binary name, language, .....
 values: ["off", "on"]
-default: ["on"]
+default: ["off"]
 
 [ProductProperty]
 type: unicode

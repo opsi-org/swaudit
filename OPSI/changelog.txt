@@ -1,3 +1,15 @@
+swaudit (4.0-16) testing; urgency=low
+
+  * code cleanup
+  * remove all opsi 3 stuff
+  * use opsi-winst 4.11.3 methods if possible
+  * extended search off by default (no data at NT6)
+  * replace delete by del
+  * replace c:\tmp by c:\opsi.org\tmp
+
+ -- detlef oertel <d.oertel@uib.de>  Fri, 10 Aug 2012 15:00:00 +0100
+
+
 swaudit (4.0-15) testing; urgency=low
 
   * new property: readfromfile to switch off audit and use the filebuffer files instead
