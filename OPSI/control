@@ -1,15 +1,15 @@
 [Package]
-version: 2
+version: 1
 depends: 
 incremental: False
 
 [Product]
 type: localboot
 id: swaudit
-name: Client software inventory
-description: Software inventory based on uninstall informations from windows registry
+name: Client Software inventory (Windows / Linux)
+description: Windows: uninstall informations from registry; Linux: form package system
 advice: opsi-script >= 4.11.6.4 needed
-version: 4.0.7.4
+version: 4.0.7.5
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -64,6 +64,16 @@ description: ONLY DEBUG - Send data using one serviceall per object
 default: False
 
 [Changelog]
+swaudit (4.0.7.5-1) stable; urgency=low
+
+  * integrate Linux swaudit
+  * append win10 ReleaseId to displayversion of windows
+  * onyly one Logline per product
+  * Use in service mode %opsiserviceUser% as $clientId$
+  * windows 10 version is now 10 (not 6.3 (from registry))
+
+-- detlef oertel <d.oertel@uib.de>  Fri, 01 Sep 2017 15:00:00 +0100
+
 swaudit (4.0.7.4-2) stable; urgency=low
 
   * max loglevel property added to create the option of limiting log file size

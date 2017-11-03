@@ -39,10 +39,23 @@ DefVar $exitcode$
 DefVar $proccall$
 DefVar $serviceMethod$
 DefVar $aktkey$
+DefVar $tmp$
+
+; linux vars
+DefVar $distCodeName$
+DefVar $distroName$
+DefVar $distRelease$
+DefVar $distrotype$
+DefVar $distroOS$
+DefVar $distroarch$
+DefStringList $linuxInfo$
+DefStringList $outLines$
+
 
 
 DefStringlist $uninstKeys$
 DefStringlist $resultlist$
+DefStringlist $resultlist2$
 DefStringList $VerInfoMap$
 DefStringList $LicenseSections$
 Defvar $softwareObject$
@@ -54,8 +67,10 @@ DefStringList $softwareOnClientObjectList$
 
 
 set $ProductId$ = "swaudit"
+; windows vars
 Set $OpsiRegKey$ = "HKLM\SOFTWARE\opsi.org"
 Set $uninstkey$="HKEY_LOCAL_MACHINE\software\microsoft\windows\currentversion\uninstall"
+
 set $clientId$="%HostID%"
 set $readfromfile$ = GetProductProperty("readfromfile","off")
 set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
@@ -82,15 +97,28 @@ ShowBitmap "%SCRIPTPATH%\swaudit.png" "Software Inventarisierung"
 
 set $OS$ = GetOS
 
-if $OS$ = "Linux"
-	logError "Run aborted: wrong OS version: only windows NT allowed"
+if not(($OS$ = "Linux") or ($OS$ = "Windows_NT"))
+	logError "Run aborted: wrong OS : only windows NT or linux supported"
 	isFatalError "Wrong OS"
 endif
 
-if CompareDotSeparatedNumbers(GetMsVersionInfo,"<","5.1")
-	logError "Run aborted: wrong OS version: only winxp and above allowed"
-	isFatalError "Wrong OS Version"
+if $OS$ = "Windows_NT"
+	if CompareDotSeparatedNumbers(GetMsVersionInfo,"<","5.1")
+		logError "Run aborted: wrong Windows version: only winxp and above allowed"
+		isFatalError "Wrong Win Version"
+	endif
 endif
+
+if $OS$ = "Linux"
+	set $distrotype$ = getLinuxDistroType
+	set $linuxInfo$ = getLinuxVersionMap
+	set $distCodeName$ = getValue("Codename", $linuxInfo$)
+	set $distRelease$ = getValue("Release", $linuxInfo$)
+	set $distroName$  = getValue("Distributor ID", $linuxInfo$)
+	set $distroOS$  = getValue("operating system", $linuxInfo$)
+	set $distroarch$  = getValue("machine", $linuxInfo$)
+endif
+
 
 
 comment "detect if we run in opsi service mode"
@@ -99,6 +127,7 @@ if "%installingProdName%" = ""
 	set $write2file$ = "on"
 else
 	set $write2file$ = "off"
+	set $clientId$="%opsiserviceUser%"
 endif
 
 if $selectedMaxLogLevel$ INT< $Midloglevel$
@@ -109,74 +138,104 @@ endif
 
 
 if $readfromfile$ = "off"
-	if $usekeyfinder$ = "on"
-		message "collecting license keys ..."
-		set $proccall$ = '"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "%opsiTmpDir%\" /file "swaudit_keys.ini"'
+	if $OS$ = "Windows_NT"
+		if $usekeyfinder$ = "on"
+			message "collecting license keys ..."
+			set $proccall$ = '"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "%opsiTmpDir%\" /file "swaudit_keys.ini"'
+			if $selectedMaxLogLevel$ INT< $Highloglevel$
+				setloglevel = $selectedMaxLogLevel$
+			else
+				setloglevel = $Highloglevel$
+			endif
+  	
+			set $exitcode$ = processcall($proccall$)
+			set $LicenseSections$ = GetSectionNames("%opsiTmpDir%\swaudit_keys.ini")
+			if $selectedMaxLogLevel$ INT< $Midloglevel$
+				setloglevel = $selectedMaxLogLevel$
+			else
+				setloglevel = $Midloglevel$
+			endif
+		endif
+		if GetSystemType = "64 Bit System"
+			message "collecting 64 Bit products ..."
+			set $uninstKeys$ = getRegistryKeyList64($uninstkey$)
+			message "collecting 64 Bit product details ..."
+			set $architecture$ = "x64"
+			set $subversion$ = ""
+			set $Language$ = ""
+			for %aktkey% in $uninstKeys$ do sub_getswdetails4_64
+		endif
+		
+		message "collecting 32 Bit products ..."
+		set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
 		if $selectedMaxLogLevel$ INT< $Highloglevel$
 			setloglevel = $selectedMaxLogLevel$
 		else
 			setloglevel = $Highloglevel$
 		endif
-
-		set $exitcode$ = processcall($proccall$)
-		set $LicenseSections$ = GetSectionNames("%opsiTmpDir%\swaudit_keys.ini")
+  	
+		
+		message "collecting 32 Bit product details ..."
+		set $architecture$ = "x86"
+		set $subversion$ = ""
+		set $Language$ = ""
+		for %aktkey% in $uninstKeys$ do sub_getswdetails4_32
+		if $selectedMaxLogLevel$ INT< $Highloglevel$
+			setloglevel = $selectedMaxLogLevel$
+		else
+			setloglevel = $Highloglevel$
+		endif
+  	
+		message "collecting os details ..."
+		sub_get_windows_info
+		sub_create_hash4
 		if $selectedMaxLogLevel$ INT< $Midloglevel$
 			setloglevel = $selectedMaxLogLevel$
 		else
 			setloglevel = $Midloglevel$
 		endif
-
-	endif
-	if GetSystemType = "64 Bit System"
-		message "collecting 64 Bit products ..."
-		set $uninstKeys$ = getRegistryKeyList64($uninstkey$)
-		message "collecting 64 Bit product details ..."
-		set $architecture$ = "x64"
-		set $subversion$ = ""
-		set $Language$ = ""
-		for %aktkey% in $uninstKeys$ do sub_getswdetails4_64
-	endif
-	
-	message "collecting 32 Bit products ..."
-	set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
-	if $selectedMaxLogLevel$ INT< $Highloglevel$
-		setloglevel = $selectedMaxLogLevel$
-	else
-		setloglevel = $Highloglevel$
-	endif
-
-	
-	message "collecting 32 Bit product details ..."
-	set $architecture$ = "x86"
-	set $subversion$ = ""
-	set $Language$ = ""
-	for %aktkey% in $uninstKeys$ do sub_getswdetails4_32
-	if $selectedMaxLogLevel$ INT< $Highloglevel$
-		setloglevel = $selectedMaxLogLevel$
-	else
-		setloglevel = $Highloglevel$
-	endif
-
-	message "collecting os details ..."
-	sub_get_windows_info
-	sub_create_hash4
-	if $selectedMaxLogLevel$ INT< $Midloglevel$
-		setloglevel = $selectedMaxLogLevel$
-	else
-		setloglevel = $Midloglevel$
-	endif
-
-
-	if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
-		message "collecting hotfixes ..."
-		sub_get_nt6_hotfix_info
-		if $selectedMaxLogLevel$ INT< $Highloglevel$
-			setloglevel = $selectedMaxLogLevel$
-		else
-			setloglevel = $Highloglevel$
-		endif
-
-	endif
+  	
+  	
+		if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
+			message "collecting hotfixes ..."
+			sub_get_nt6_hotfix_info
+			if $selectedMaxLogLevel$ INT< $Highloglevel$
+				setloglevel = $selectedMaxLogLevel$
+			else
+				setloglevel = $Highloglevel$
+			endif
+		endif  ; nt6
+		;comment "convert object list to json array .."
+		;set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
+		;set $softwareOnClientObjectArray$ = jsonStringListToJsonArray($softwareOnClientObjectList$)
+	else ; Windows
+		if $OS$ = "Linux"
+			message "collecting products ..."
+			sub_getswdetails4_os
+			if $distrotype$ = "debian"
+				set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
+				setloglevel = $Highloglevel$
+				for %aktline% in $outLines$ do sub_getswdetails4_deb
+				setloglevel=$Highloglevel$
+			endif  ; debian
+			if $distrotype$ = "suse"
+				set $outLines$ = getOutstreamFromSection("shellInAnIcon_suse")
+				setloglevel = $Highloglevel$
+				for %aktline% in $outLines$ do sub_getswdetails4_suse
+				setloglevel=$Highloglevel$
+			endif  ; suse
+			if $distrotype$ = "redhat"
+				set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
+				setloglevel = $Highloglevel$
+				for %aktline% in $outLines$ do sub_getswdetails4_redhat
+				setloglevel=$Highloglevel$
+			endif  ; redhat
+		else ; not windows not Linux
+			; we should never end here
+			LogError "Wrong OS: Product: " + $ProductId$ + "is only for Linux / Windows_NT"
+			isFatalError "Wrong OS"
+		endif ; linux
+	endif ; windows
 	comment "convert object list to json array .."
 	set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
 	set $softwareOnClientObjectArray$ = jsonStringListToJsonArray($softwareOnClientObjectList$)
@@ -288,6 +347,8 @@ if not ($aktkey$ = "")
 	set $binaryName$ = ""
 	set $Language$ = ""
 	set $licenseKey$ = ""
+	Set $displayVersion$ = ""
+	Set $version$ = ""
 	set $winSoftwareId$ = $aktkey$
 	if not ($winSoftwareId$ = "") 
 		set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
@@ -324,6 +385,8 @@ if not ($aktkey$ = "")
 	set $binaryName$ = ""
 	set $Language$ = ""
 	set $licenseKey$ = ""
+	Set $displayVersion$ = ""
+	Set $version$ = ""
 	set $winSoftwareId$ = $aktkey$
 	if not ($winSoftwareId$ = "") 
 		set $Language$ = ""
@@ -352,6 +415,7 @@ DefVar $CurrentVersionProductName$
 DefVar $CurrentVersionCSDVersion$
 DefVar $CurrentVersionProductId$
 DefVar $CurrentVersionCurrentVersion$
+DefVar $CurrentVersionReleaseId$
 DefStringList $localeMap$
 
 set $installSize$ = "-1"
@@ -370,16 +434,25 @@ Set $CurrentVersionProductId$ = GetRegistryStringValueSysNative("[HKLM\Software\
 ; i.e. 6.1
 Set $CurrentVersionCurrentVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CurrentVersion")
 
-
 Set $winSoftwareId$  = "ms_windows_" + takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
-Set $displayVersion$ = $CurrentVersionCurrentVersion$
+;Set $displayVersion$ = $CurrentVersionCurrentVersion$
+; This is 6.3 on win10 - so we use the real version from api with manifest
+Set $displayVersion$ = GetMsVersionInfo
 Set $displayName$    = $CurrentVersionProductName$
 if not ($CurrentVersionCSDVersion$ = "")
 	Set $displayName$ = $displayName$ + " (" + $CurrentVersionCSDVersion$ + ")"
 endif
+if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","10.0")
+	Set $CurrentVersionReleaseId$ = GetRegistryStringValueSysNative('[HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion] ReleaseID')
+	if not ($CurrentVersionReleaseId$ = "")
+		Set $displayName$ = $displayName$ + " (" + $CurrentVersionReleaseId$ + ")"
+	endif
+endif
 Set $uninstallString$ = ""
 Set $name$ = $displayName$
-Set $version$ = $CurrentVersionCurrentVersion$
+;Set $version$ = $CurrentVersionCurrentVersion$
+; This is 6.3 on win10 - so we use the real version from api with manifest
+Set $version$ = GetMsVersionInfo
 Set $subversion$ = takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
 if $usekeyfinder$ = "on"
 	set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
@@ -433,13 +506,16 @@ else
 endif
 sub_create_hash4
 
+
 [sub_create_hash4]
 if $displayName$ = ""
 	set $name$ = $winSoftwareId$
 else
 	set $name$ = $displayName$
 endif
-set $version$ = $displayVersion$
+if $version$ = ""
+	set $version$ = $displayVersion$
+endif
 
 if $selectedMaxLogLevel$ INT< $Highloglevel$
 	setloglevel = $selectedMaxLogLevel$
@@ -447,21 +523,23 @@ else
 	setloglevel = $Highloglevel$
 endif
 
-comment ""
-comment "next product is...."
-comment "$name$  ----------------= "+$name$
-comment "$version$ --------------= "+$version$
-comment "$subVersion$ -----------= "+$subVersion$
-comment "$language$ -------------= "+$language$
-comment "$architecture$ ---------= "+$architecture$
-comment "$windowsSoftwareId$ ----= "+$winSoftwareId$
-comment "$windowsDisplayName$ ---= "+$displayName$
-comment "$windowsDisplayVersion$ = "+$displayVersion$
-comment "$uninstallString$ ------= "+$uninstallString$
-comment "$installSize$ ----------= "+$installSize$
-comment "$displayVersion$ -------= "+$displayVersion$
-comment "$binaryName$ -----------= "+$binaryName$
-comment "$licenseKey$ -----------= "+$licenseKey$
+
+comment "Product: "+$name$+" Version: "+$version$+" Archticture: "+$architecture$
+;comment ""
+;comment "next product is...."
+;comment "$name$  ----------------= "+$name$
+;comment "$version$ --------------= "+$version$
+;comment "$subVersion$ -----------= "+$subVersion$
+;comment "$language$ -------------= "+$language$
+;comment "$architecture$ ---------= "+$architecture$
+;comment "$windowsSoftwareId$ ----= "+$winSoftwareId$
+;comment "$windowsDisplayName$ ---= "+$displayName$
+;comment "$windowsDisplayVersion$ = "+$displayVersion$
+;comment "$uninstallString$ ------= "+$uninstallString$
+;comment "$installSize$ ----------= "+$installSize$
+;comment "$displayVersion$ -------= "+$displayVersion$
+;comment "$binaryName$ -----------= "+$binaryName$
+;comment "$licenseKey$ -----------= "+$licenseKey$
 
 if $selectedMaxLogLevel$ INT< $Lowloglevel$
 	setloglevel = $selectedMaxLogLevel$
@@ -511,7 +589,144 @@ set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnCl
 set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"licenseKey",$licenseKey$)
 set $softwareOnClientObjectList$ = addtolist($softwareOnClientObjectList$,$softwareOnClientObject$)
 
+;;;;;;;; Linux start
+[sub_getswdetails4_os]
+setloglevel=$Midloglevel$
+set $displayName$ = $distroOS$+" : "+$distroName$
+if not ($displayName$ = '')
+	set $displayVersion$ = $distRelease$
+	set $installSize$ = "-1"
+	set $architecture$ = ""
+	set $tmp$ = $distroarch$
+	if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
+		set $architecture$ = "x86"
+	endif
+	if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+		set $architecture$ = "x64"
+	endif
+	if ($tmp$ = "noarch") or ($tmp$ = "all") 
+		set $architecture$ = ""
+	endif
+	set $binaryName$ = ""
+	set $Language$ = ""
+	set $subVersion$ = ""
+	set $uninstallString$ = ""
+	set $binaryName$ = ""
+	set $licenseKey$ = ""
+	set $winSoftwareId$ = $displayName$
+	sub_create_hash4
+endif
 
+[shellInAnIcon_deb]
+# dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${STATUS}\n'
+dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${INSTALLED-SIZE}\n'
+
+[shellInAnIcon_suse]
+zypper se -i -s
+
+[shellInAnIcon_redhat]
+yum list installed
+
+
+
+
+[sub_getswdetails4_deb]
+setloglevel=$Midloglevel$
+if not ("%aktline%" = "")
+	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
+	set $displayName$ = takeString(0,$resultlist$)
+	if not ($displayName$ = '')
+		set $displayVersion$ = takeString(1,$resultlist$)
+		set $installSize$ = takeString(3,$resultlist$)
+		if not(isNumber($installSize$))
+			set $installSize$ = "-1"
+		endif
+		set $architecture$ = ""
+		set $tmp$ = takeString(2,$resultlist$)
+		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
+			set $architecture$ = "x86"
+		endif
+		if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+			set $architecture$ = "x64"
+		endif
+		if ($tmp$ = "noarch") or ($tmp$ = "all") 
+			set $architecture$ = ""
+		endif
+		set $binaryName$ = ""
+		set $Language$ = ""
+		set $subVersion$ = ""
+		set $uninstallString$ = ""
+		set $binaryName$ = ""
+		set $licenseKey$ = ""
+		set $winSoftwareId$ = $displayName$
+			
+		sub_create_hash4
+	endif
+endif
+
+[sub_getswdetails4_suse]
+setloglevel=$Midloglevel$
+if not ("%aktline%" = "")
+	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
+	if takeString(0,$resultlist$) = 'i'
+		set $displayName$ = takeString(2,$resultlist$)
+		set $displayVersion$ = takeString(6,$resultlist$)
+		set $architecture$ = ""
+		set $tmp$ = takeString(8,$resultlist$)
+		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
+			set $architecture$ = "x86"
+		endif
+		if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+			set $architecture$ = "x64"
+		endif
+		if ($tmp$ = "noarch") or ($tmp$ = "all") 
+			set $architecture$ = ""
+		endif
+		set $installSize$ = "-1"
+		set $binaryName$ = ""
+		set $Language$ = ""
+		set $subVersion$ = ""
+		set $uninstallString$ = ""
+		set $binaryName$ = ""
+		set $licenseKey$ = ""
+		set $winSoftwareId$ = $displayName$
+			
+		sub_create_hash4
+	endif
+endif
+
+[sub_getswdetails4_redhat]
+setloglevel=$Midloglevel$
+if not ("%aktline%" = "")
+	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
+	set $displayName$ = takeString(0,$resultlist$)
+	set $resultlist2$  = splitString($displayName$, ".")
+	set $displayName$ = takeString(0,$resultlist2$)
+	set $architecture$ = ""
+	set $tmp$ = takeString(1,$resultlist2$)
+	if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
+		set $architecture$ = "x86"
+	endif
+	if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+		set $architecture$ = "x64"
+	endif
+	if ($tmp$ = "noarch") or ($tmp$ = "all") 
+		set $architecture$ = ""
+	endif
+	set $displayVersion$ = takeString(1,$resultlist$)
+		
+	set $installSize$ = "-1"
+	set $binaryName$ = ""
+	set $Language$ = ""
+	set $subVersion$ = ""
+	set $uninstallString$ = ""
+	set $binaryName$ = ""
+	set $licenseKey$ = ""
+	set $winSoftwareId$ = $displayName$
+		
+	sub_create_hash4
+endif
+;;;;;;;; Linux end
 [Files_del_temp]
 delete "%opsiTmpDir%\swaudit_keys.ini"
 
