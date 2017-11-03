@@ -1,5 +1,5 @@
 [Package]
-version: 3
+version: 1
 depends: 
 incremental: False
 
@@ -9,7 +9,7 @@ id: swaudit
 name: Client software inventory
 description: Software inventory based on uninstall informations from windows registry
 advice: 
-version: 4.0.5
+version: 4.0.6
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -20,15 +20,6 @@ alwaysScript: swaudit4.ins
 onceScript: 
 customScript: 
 userLoginScript: 
-
-[ProductProperty]
-type: unicode
-name: extended_search
-multivalue: False
-editable: False
-description: Search for binary name, language,..
-values: ["off", "on"]
-default: ["off"]
 
 [ProductProperty]
 type: unicode
@@ -58,6 +49,14 @@ values: ["off", "on"]
 default: ["off"]
 
 [Changelog]
+swaudit (4.0.6-2) stable; urgency=low
+  * removed property extended_search (was working on xp only)
+-- bardo wolf <b.wolf@uib.de>  26 Nov 2015
+
+swaudit (4.0.6-1) stable; urgency=low
+  * back to /saveini instead of savecsv "%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "c:\opsi.org\tmp\" /file "swaudit_keys.ini
+-- bardo wolf <b.wolf@uib.de>  Fri, 29 Oct 2015 12:19:00 +0100
+
 swaudit (4.0.5-3) stable; urgency=low
 
   * Script fixes for win10
@@ -259,6 +258,10 @@ swaudit (1.2.3-3) stable; urgency=low
   * some bugfixes in charset de/encoding
 
  -- Jan Schneider <j.schneider@uib.de>  Mon, 16 Mar 2009 15:15:27 +0100
+
+
+
+
 
 
 

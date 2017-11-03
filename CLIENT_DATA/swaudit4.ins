@@ -470,10 +470,11 @@ set $tmp$ = takeFirstStringContaining(splitstring($tmp$,"]"), $uninstkey$)
 set $uninstkeys$ = addtolist($uninstkeys$, $tmp$)
 
 [Winbatch_start_keyfinder]
-"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /savecsv "c:\opsi.org\tmp\" /file "swaudit_keys.csv"
+;"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /savecsv "c:\opsi.org\tmp\" /file "swaudit_keys.csv"
+"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "c:\opsi.org\tmp\" /file "swaudit_keys.ini
 
 [Files_del_temp]
-del "c:\opsi.org\tmp\swaudit_keys.csv"
+del "c:\opsi.org\tmp\swaudit_keys.ini"
 
 [opsiservicecall_authenticated]
 "method": "authenticated"
