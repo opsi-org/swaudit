@@ -385,6 +385,21 @@ comment "$licenseKey$ -----------= "+$licenseKey$
 
 setloglevel = $Lowloglevel$
 
+; trim entries to DB field length
+set $name$ = strPart($name$,"1","99")
+set $version$ = strPart($version$,"1","99")
+set $subversion$ = strPart($subversion$,"1","99")
+set $Language$ = strPart($Language$,"1","9")
+set $architecture$ = strPart($architecture$,"1","3")
+set $winSoftwareId$ = strPart($winSoftwareId$,"1","99")
+set $displayName$ = strPart($displayName$,"1","99")
+set $displayVersion$ = strPart($displayVersion$,"1","99")
+set $clientId$ = strPart($clientId$,"1","254")
+set $uninstallString$ = strPart($uninstallString$,"1","199")
+set $binaryName$ = strPart($binaryName$,"1","99")
+set $licenseKey$ = strPart($licenseKey$,"1","254")
+
+; make json objects
 set $softwareObject$ = "{}"
 set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"type","AuditSoftware")
 set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"name",$name$)
