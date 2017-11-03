@@ -9,7 +9,7 @@ id: swaudit
 name: Client software inventory
 description: Software inventory based on uninstall informations from windows registry
 advice: opsi-script >= 4.11.6.4 needed
-version: 4.0.7.3
+version: 4.0.7.4
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -55,6 +55,12 @@ description: ONLY DEBUG - Send data using one serviceall per object
 default: False
 
 [Changelog]
+swaudit (4.0.7.4-1) stable; urgency=low
+
+  * fix problems with quatations in uninstall key ( #2481)
+
+-- detlef oertel <d.oertel@uib.de>  Thu, 08 Dec 2016 15:00:00 +0100
+
 swaudit (4.0.7.3-1) stable; urgency=low
 
   * trim entries to DB field length

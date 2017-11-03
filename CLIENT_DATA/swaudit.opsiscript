@@ -37,6 +37,7 @@ DefVar $debug_send$
 DefVar $exitcode$
 DefVar $proccall$
 DefVar $serviceMethod$
+DefVar $aktkey$
 
 
 DefStringlist $uninstKeys$
@@ -225,22 +226,24 @@ Files_del_temp
 
 [sub_getswdetails4_32]
 setloglevel=$Midloglevel$
-if not ("%aktkey%" = "")
+; use EscapeString to handle keys with quotation
+set $aktkey$ = EscapeString:%aktkey%
+if not ($aktkey$ = "")
 	set $installSize$ = "-1"
 	set $binaryName$ = ""
 	set $Language$ = ""
 	set $licenseKey$ = ""
-	set $winSoftwareId$ = "%aktkey%"
+	set $winSoftwareId$ = $aktkey$
 	if not ($winSoftwareId$ = "") 
-		set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] displayName")
-		set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] binaryName")
-		set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] uninstallString")
+		set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
+		set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
+		set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
+		set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
 		if $usekeyfinder$ = "on"
 			set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
 		endif
 		
-		set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\%aktkey%] binaryName")
+		set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
 		if not($binaryName$ = "")
 			if FileExists($binaryName$)
 				set $VerInfoMap$ = getFileInfoMap($binaryName$)
@@ -254,23 +257,25 @@ endif
 
 [sub_getswdetails4_64]
 setloglevel=$Midloglevel$
-if not ("%aktkey%" = "")
+; use EscapeString to handle keys with quotation
+set $aktkey$ = EscapeString:%aktkey%
+if not ($aktkey$ = "")
 	set $installSize$ = "-1"
 	set $binaryName$ = ""
 	set $Language$ = ""
 	set $licenseKey$ = ""
-	set $winSoftwareId$ = "%aktkey%"
+	set $winSoftwareId$ = $aktkey$
 	if not ($winSoftwareId$ = "") 
 		set $Language$ = ""
 		set $binaryName$ = ""
-		set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\%aktkey%] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\%aktkey%] displayName")
-		set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\%aktkey%] uninstallString")
+		set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
+		set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
+		set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
 		if $usekeyfinder$ = "on"
 			set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
 		endif
 		
-		set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\%aktkey%] binaryName")
+		set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
 		if not($binaryName$ = "") 
 			if FileExists($binaryName$)
 				set $VerInfoMap$ = getFileInfoMap($binaryName$)
