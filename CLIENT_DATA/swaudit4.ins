@@ -2,9 +2,9 @@
 ; This sourcecode is owned by uib
 ; and published under the Terms of the General Public License.
 
-
+encoding=utf8
 [actions]
-requiredWinstVersion >= "4.11.4"
+requiredWinstVersion >= "4.11.5"
 ScriptErrorMessages = off
 DefVar $Highloglevel$
 DefVar $Midloglevel$
@@ -46,6 +46,9 @@ DefVar $usekeyfinder$
 DefVar $line$
 DefVar $element$
 DefVar $aktKeyVar$
+DefVar $fixstr$
+DefVar $fixtitle$
+
 
 
 DefStringlist $uninstKeys$
@@ -56,6 +59,8 @@ DefStringList $softwareOnClientHashlist$
 DefStringList $SlowInfoMap$
 DefStringList $VerInfoMap$
 DefStringList $LicenseSections$
+DefStringList $orglist$
+DefStringList $fixlist$
 
 set $ProductId$ = "swaudit"
 Set $OpsiRegKey$ = "HKLM\SOFTWARE\opsi.org"
@@ -136,8 +141,10 @@ if $readfromfile$ = "off"
 else
 	comment "read from file - only for debugging"
 	setloglevel=7
-	set $softwareHashlist$ = loadUnicodeTextFile("c:\opsi.org\tmp\auditsoftware_%PCName%.txt")
-	set $softwareOnClientHashlist$ = loadUnicodeTextFile("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt")
+	;set $softwareHashlist$ = loadUnicodeTextFile("c:\opsi.org\tmp\auditsoftware_%PCName%.txt")
+	;set $softwareOnClientHashlist$ = loadUnicodeTextFile("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt")
+	set $softwareHashlist$ = loadTextFileWithEncoding("c:\opsi.org\tmp\auditsoftware_%PCName%.txt","utf8")
+	set $softwareOnClientHashlist$ = loadTextFileWithEncoding("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt","utf8")
 endif
 if $write2file$ = "on"
 	message "writing results back to file ..."
@@ -183,12 +190,35 @@ if not ($aktKeyVar$ = "")
 	set $winSoftwareId$ = $aktKeyVar$
 	if not ($winSoftwareId$ = "") 
 		set $displayVersion$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] displayName")
-		set $binaryName$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] binaryName")
-		set $uninstallString$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] uninstallString")
-		set $licenseKey$ = GetValueFromInifile("c:\opsi.org\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
+		set $fixtitle$ = "DisplayVersion"
+		set $fixstr$ = $displayVersion$
+		sub_fix_utf8
+		set $displayVersion$ = $fixstr$
 		
-		set $binaryName$ = GetRegistrystringvalue ("["+$uninstKey$+"\"+$aktKeyVar$+"] binaryName")
+		set $displayName$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] displayName")
+		set $fixtitle$ = "displayName"
+		set $fixstr$ = $displayName$
+		sub_fix_utf8
+		set $displayName$ = $fixstr$
+		
+		set $binaryName$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] binaryName")
+		set $fixtitle$ = "binaryName"
+		set $fixstr$ = $binaryName$
+		sub_fix_utf8
+		set $binaryName$ = $fixstr$
+
+		set $uninstallString$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] uninstallString")
+		set $fixtitle$ = "uninstallString"
+		set $fixstr$ = $uninstallString$
+		sub_fix_utf8
+		set $uninstallString$ = $fixstr$
+
+		set $licenseKey$ = GetValueFromInifile("c:\opsi.org\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
+		set $fixtitle$ = "licenseKey"
+		set $fixstr$ = $licenseKey$
+		sub_fix_utf8
+		set $licenseKey$ = $fixstr$
+
 		if not($binaryName$ = "")
 			if FileExists($binaryName$)
 				set $VerInfoMap$ = getFileInfoMap($binaryName$)
@@ -196,37 +226,38 @@ if not ($aktKeyVar$ = "")
 				set $Language$ = LangCodeByHex($langCodeHex$)
 			endif
 		endif
-		if $extended_search$ = "on"
-			set $SlowInfoMap$ = GetSlowInfoMap($winSoftwareId$,"on")
-			if count($SlowInfoMap$) > "0"
-				set $binaryName$ = getValue("binaryName",$SlowInfoMap$)
-				if ($binaryName$ = "") or ($binaryName$ = "NULL")
-					set $binaryName$ = ""
-				endif
-				set $installSize$ = getValue("installSize",$SlowInfoMap$)
-				if ($installSize$ = "") or ($installSize$ = "NULL")
-					set $installSize$ = "0"
-				endif
-				set $lastUsed$ = getValue("lastUsed",$SlowInfoMap$)
-				if ($lastUsed$ = "") or ($lastUsed$ = "NULL")
-					set $lastUsed$ = ""
-				endif
-				set $usageFrequency$ = getValue("usageFrequency",$SlowInfoMap$)
-				if ($usageFrequency$ = "") or ($usageFrequency$ = "NULL")
-					set $usageFrequency$ = "0"
-				endif
-				if not(($binaryName$ = "") or ($binaryName$ = "NULL"))
-					if FileExists($binaryName$)
-						set $VerInfoMap$ = getFileInfoMap($binaryName$)
-						set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
-						set $Language$ = LangCodeByHex($langCodeHex$)
-					endif
-				endif
-			endif
-		endif
+		;if $extended_search$ = "on"
+		;	set $SlowInfoMap$ = GetSlowInfoMap($winSoftwareId$,"on")
+		;	if count($SlowInfoMap$) > "0"
+		;		set $binaryName$ = getValue("binaryName",$SlowInfoMap$)
+		;		if ($binaryName$ = "") or ($binaryName$ = "NULL")
+		;			set $binaryName$ = ""
+		;		endif
+		;		set $installSize$ = getValue("installSize",$SlowInfoMap$)
+		;		if ($installSize$ = "") or ($installSize$ = "NULL")
+		;			set $installSize$ = "0"
+		;		endif
+		;		set $lastUsed$ = getValue("lastUsed",$SlowInfoMap$)
+		;		if ($lastUsed$ = "") or ($lastUsed$ = "NULL")
+		;			set $lastUsed$ = ""
+		;		endif
+		;		set $usageFrequency$ = getValue("usageFrequency",$SlowInfoMap$)
+		;		if ($usageFrequency$ = "") or ($usageFrequency$ = "NULL")
+		;			set $usageFrequency$ = "0"
+		;		endif
+		;		if not(($binaryName$ = "") or ($binaryName$ = "NULL"))
+		;			if FileExists($binaryName$)
+		;				set $VerInfoMap$ = getFileInfoMap($binaryName$)
+		;				set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
+		;				set $Language$ = LangCodeByHex($langCodeHex$)
+		;			endif
+		;		endif
+		;	endif
+		;endif
 		sub_create_hash4
 	endif
 endif
+
 
 [sub_getswdetails4_64]
 setloglevel=$Midloglevel$
@@ -243,11 +274,35 @@ if not ($aktKeyVar$ = "")
 		set $Language$ = ""
 		set $binaryName$ = ""
 		set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\"+$aktKeyVar$+"] DisplayVersion")
+		set $fixtitle$ = "DisplayVersion"
+		set $fixstr$ = $displayVersion$
+		sub_fix_utf8
+		set $displayVersion$ = $fixstr$
+
 		set $displayName$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\"+$aktKeyVar$+"] displayName")
+		set $fixtitle$ = "displayName"
+		set $fixstr$ = $displayName$
+		sub_fix_utf8
+		set $displayName$ = $fixstr$
+
 		set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\"+$aktKeyVar$+"] uninstallString")
+		set $fixtitle$ = "uninstallString"
+		set $fixstr$ = $uninstallString$
+		sub_fix_utf8
+		set $uninstallString$ = $fixstr$
+
 		set $licenseKey$ = GetValueFromInifile("c:\opsi.org\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
+		set $fixtitle$ = "licenseKey"
+		set $fixstr$ = $licenseKey$
+		sub_fix_utf8
+		set $licenseKey$ = $fixstr$
 		
 		set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\"+$aktKeyVar$+"] binaryName")
+		set $fixtitle$ = "binaryName"
+		set $fixstr$ = $binaryName$
+		sub_fix_utf8
+		set $binaryName$ = $fixstr$
+
 		if not($binaryName$ = "") 
 			if FileExists($binaryName$)
 				set $VerInfoMap$ = getFileInfoMap($binaryName$)
@@ -256,34 +311,34 @@ if not ($aktKeyVar$ = "")
 			endif
 		endif
 
-		if $extended_search$ = "on"
-			set $SlowInfoMap$ = GetSlowInfoMap($winSoftwareId$,"off")
-			if count($SlowInfoMap$) > "0"
-				set $binaryName$ = getValue("binaryName",$SlowInfoMap$)
-				if ($binaryName$ = "") or ($binaryName$ = "NULL")
-					set $binaryName$ = ""
-				endif
-				set $installSize$ = getValue("installSize",$SlowInfoMap$)
-				if ($installSize$ = "") or ($installSize$ = "NULL")
-					set $installSize$ = "-1"
-				endif
-				set $lastUsed$ = getValue("lastUsed",$SlowInfoMap$)
-				if ($lastUsed$ = "") or ($lastUsed$ = "NULL")
-					set $lastUsed$ = ""
-				endif
-				set $usageFrequency$ = getValue("usageFrequency",$SlowInfoMap$)
-				if ($usageFrequency$ = "") or ($usageFrequency$ = "NULL")
-					set $usageFrequency$ = "-1"
-				endif
-				if not(($binaryName$ = "") or ($binaryName$ = "NULL"))
-					if FileExists($binaryName$)
-						set $VerInfoMap$ = getFileInfoMap($binaryName$)
-						set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
-						set $Language$ = LangCodeByHex($langCodeHex$)
-					endif
-				endif
-			endif
-		endif
+		;if $extended_search$ = "on"
+		;	set $SlowInfoMap$ = GetSlowInfoMap($winSoftwareId$,"off")
+		;	if count($SlowInfoMap$) > "0"
+		;		set $binaryName$ = getValue("binaryName",$SlowInfoMap$)
+		;		if ($binaryName$ = "") or ($binaryName$ = "NULL")
+		;			set $binaryName$ = ""
+		;		endif
+		;		set $installSize$ = getValue("installSize",$SlowInfoMap$)
+		;		if ($installSize$ = "") or ($installSize$ = "NULL")
+		;			set $installSize$ = "-1"
+		;		endif
+		;		set $lastUsed$ = getValue("lastUsed",$SlowInfoMap$)
+		;		if ($lastUsed$ = "") or ($lastUsed$ = "NULL")
+		;			set $lastUsed$ = ""
+		;		endif
+		;		set $usageFrequency$ = getValue("usageFrequency",$SlowInfoMap$)
+		;		if ($usageFrequency$ = "") or ($usageFrequency$ = "NULL")
+		;			set $usageFrequency$ = "-1"
+		;		endif
+		;		if not(($binaryName$ = "") or ($binaryName$ = "NULL"))
+		;			if FileExists($binaryName$)
+		;				set $VerInfoMap$ = getFileInfoMap($binaryName$)
+		;				set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
+		;				set $Language$ = LangCodeByHex($langCodeHex$)
+		;			endif
+		;		endif
+		;	endif
+		;endif
 		sub_create_hash4
 	endif
 endif
@@ -453,6 +508,32 @@ set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "usageFre
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "licenseKey="+strPart($licenseKey$,"1","254"))
 if not($lastUsed$ = "")
 	set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "lastUsed="+$lastUsed$)
+endif
+
+[sub_fix_utf8]
+if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.11.6.3")
+	if not (isValidUtf8String($fixstr$))
+		setLoglevel = 8
+		set $displayVersion$ = getFixedUtf8String($displayVersion$)
+		LogError $fixtitle$+" was no valid string: "+$displayVersion$
+		setloglevel=$Midloglevel$
+	endif
+else
+	; fixstring is unchanged
+endif
+
+[sub_fix_utf8_list]
+if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.11.6.3")
+	set $fixstr$ = "%aktstr%"
+	if not (isValidUtf8String($fixstr$))
+		setLoglevel = 8
+		set $fixstr$ = getFixedUtf8String($fixstr$)
+		LogError "%aktstr% was no valid string: "+$fixstr$
+		setloglevel=$Midloglevel$
+	endif
+	set $fixlist = addtolist($fixlist$,$fixstr$)
+else
+	set $fixlist = addtolist($fixlist$,"%aktstr%")
 endif
 
 

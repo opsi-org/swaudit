@@ -1,5 +1,5 @@
 [Package]
-version: 2
+version: 3
 depends: 
 incremental: False
 
@@ -49,6 +49,14 @@ values: ["off", "on"]
 default: ["off"]
 
 [Changelog]
+swaudit (4.0.6-3) stable; urgency=low
+
+  * use new opsi-script functions if possible:
+      isValidUtf8String(str:string) : boolean;
+      getFixedUtf8String(str:string) : string;
+
+-- detlef oertel <d.oertel@uib.de>  Mon, 29 Jun 2015 15:00:00 +0100
+
 swaudit (4.0.6-2) stable; urgency=low
   * removed property extended_search (was working on xp only)
 -- bardo wolf <b.wolf@uib.de>  26 Nov 2015
