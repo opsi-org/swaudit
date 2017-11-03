@@ -1,3 +1,9 @@
+swaudit (4.0.2-2) stable; urgency=low
+
+  * switch to ekeyfinder (https://sourceforge.net/projects/ekeyfinder/)
+
+ -- detlef oertel <d.oertel@uib.de>  Thu, 06 Dec 2012 15:00:00 +0100
+
 swaudit (4.0.2-1) stable; urgency=low
 
   * code cleanup
