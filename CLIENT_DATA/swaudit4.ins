@@ -588,6 +588,10 @@ else
 	set $name$ = $displayName$
 endif
 set $version$ = $displayVersion$
+;; workaround for bug #354
+;if $version$ = "0"
+;	set $version$ = ""
+;endif
 
 setloglevel = $Highloglevel$
 comment ""
@@ -596,7 +600,7 @@ comment "$name$  --------------= "+$name$
 
 ;set $name$ = takeString(0, splitString($name$, "'")) 
 
-comment "corrected name ---------
+;comment "corrected name ---------
 comment "$version$ ------------= "+$version$
 comment "$subVersion$ ---------= "+$subVersion$
 comment "$language$ -----------= "+$language$
