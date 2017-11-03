@@ -1,5 +1,5 @@
 [Package]
-version: 1
+version: 2
 depends: 
 incremental: False
 
@@ -258,6 +258,7 @@ swaudit (1.2.3-3) stable; urgency=low
   * some bugfixes in charset de/encoding
 
  -- Jan Schneider <j.schneider@uib.de>  Mon, 16 Mar 2009 15:15:27 +0100
+
 
 
 
