@@ -45,6 +45,7 @@ DefVar $usefilebuffer$
 DefVar $usekeyfinder$
 DefVar $line$
 DefVar $element$
+DefVar $aktKeyVar$
 
 
 DefStringlist $uninstKeys$
@@ -169,21 +170,23 @@ Files_del_temp
 
 [sub_getswdetails4_32]
 setloglevel=$Midloglevel$
-if not ("%aktkey%" = "")
+comment "handling if key contains quotation marks"
+set $aktKeyVar$ = EscapeString: %aktkey%
+if not ($aktKeyVar$ = "")
 	set $installSize$ = "-1"
 	set $usageFrequency$ = "-1"
 	set $binaryName$ = ""
 	set $lastUsed$ = ""
 	set $Language$ = ""
-	set $winSoftwareId$ = "%aktkey%"
+	set $winSoftwareId$ = $aktKeyVar$
 	if not ($winSoftwareId$ = "") 
-		set $displayVersion$ = GetRegistrystringvalue32("["+$uninstKey$+"\%aktkey%] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue32("["+$uninstKey$+"\%aktkey%] displayName")
-		set $binaryName$ = GetRegistrystringvalue32("["+$uninstKey$+"\%aktkey%] binaryName")
-		set $uninstallString$ = GetRegistrystringvalue32("["+$uninstKey$+"\%aktkey%] uninstallString")
+		set $displayVersion$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] DisplayVersion")
+		set $displayName$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] displayName")
+		set $binaryName$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] binaryName")
+		set $uninstallString$ = GetRegistrystringvalue32("["+$uninstKey$+"\"+$aktKeyVar$+"] uninstallString")
 		set $licenseKey$ = GetValueFromInifile("c:\opsi.org\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
 		
-		set $binaryName$ = GetRegistrystringvalue ("["+$uninstKey$+"\%aktkey%] binaryName")
+		set $binaryName$ = GetRegistrystringvalue ("["+$uninstKey$+"\"+$aktKeyVar$+"] binaryName")
 		if not($binaryName$ = "")
 			if FileExists($binaryName$)
 				set $VerInfoMap$ = getFileInfoMap($binaryName$)
@@ -225,22 +228,24 @@ endif
 
 [sub_getswdetails4_64]
 setloglevel=$Midloglevel$
-if not ("%aktkey%" = "")
+comment "handling if key contains quotation marks"
+set $aktKeyVar$ = EscapeString: %aktkey%
+if not ($aktKeyVar$ = "")
 	set $installSize$ = "-1"
 	set $usageFrequency$ = "-1"
 	set $lastUsed$ = ""
 	set $binaryName$ = ""
 	set $Language$ = ""
-	set $winSoftwareId$ = "%aktkey%"
+	set $winSoftwareId$ = $aktKeyVar$
 	if not ($winSoftwareId$ = "") 
 		set $Language$ = ""
 		set $binaryName$ = ""
-		set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\%aktkey%] DisplayVersion")
-		set $displayName$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\%aktkey%] displayName")
-		set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\%aktkey%] uninstallString")
+		set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\"+$aktKeyVar$+"] DisplayVersion")
+		set $displayName$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\"+$aktKeyVar$+"] displayName")
+		set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\"+$aktKeyVar$+"] uninstallString")
 		set $licenseKey$ = GetValueFromInifile("c:\opsi.org\tmp\swaudit_keys.ini",$winSoftwareId$,"License key","")
 		
-		set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\%aktkey%] binaryName")
+		set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstKey$+"\"+$aktKeyVar$+"] binaryName")
 		if not($binaryName$ = "") 
 			if FileExists($binaryName$)
 				set $VerInfoMap$ = getFileInfoMap($binaryName$)
@@ -457,7 +462,7 @@ reg query $uninstkey$
 regedit /e "c:\opsi.org\tmp\myreg.reg" $uninstkey$
 
 [sub_remove_brackets]
-set $tmp$ = takeFirstStringContaining(splitstring("%aktkey%","["), $uninstkey$)
+set $tmp$ = takeFirstStringContaining(splitstring($aktKeyVar$,"["), $uninstkey$)
 set $tmp$ = takeFirstStringContaining(splitstring($tmp$,"]"), $uninstkey$)
 set $uninstkeys$ = addtolist($uninstkeys$, $tmp$)
 

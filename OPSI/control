@@ -1,5 +1,5 @@
 [Package]
-version: 1
+version: 2
 depends: 
 incremental: False
 
@@ -58,11 +58,19 @@ values: ["off", "on"]
 default: ["off"]
 
 [Changelog]
+swaudit (4.0.5-2) stable; urgency=low
+
+  * Fix handling of keys containing quotation marks
+
+-- detlef oertel <d.oertel@uib.de>  Wed, 12 Nov 2014 15:00:00 +0100
+
 swaudit (4.0.5-1) stable; urgency=low
+
   * Fix writing to long entries in sub_create_hash4 by adding to all string values something like "name="+strPart($name$,"1","99")
   * codecleanup
   * changelog to control file
- -- detlef oertel <d.oertel@uib.de>  Fri, 01 Aug 2014 15:00:00 +0100
+
+-- detlef oertel <d.oertel@uib.de>  Fri, 01 Aug 2014 15:00:00 +0100
 
 swaudit (4.0.2-3) stable; urgency=low
 
@@ -238,6 +246,8 @@ swaudit (1.2.3-3) stable; urgency=low
   * some bugfixes in charset de/encoding
 
  -- Jan Schneider <j.schneider@uib.de>  Mon, 16 Mar 2009 15:15:27 +0100
+
+
 
 
 
