@@ -71,8 +71,8 @@ set $extended_search$ = GetProductProperty("extended_search","off")
 set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
 set $usekeyfinder$ = GetProductProperty("usekeyfinder","on")
 set $readfromfile$ = GetProductProperty("readfromfile","off")
-set $Highloglevel$ = "5"
-set $Midloglevel$ = "5"
+set $Highloglevel$ = "4"
+set $Midloglevel$ = "4"
 set $Lowloglevel$ = "4"
 ;set $Highloglevel$ = "5"
 ;set $Midloglevel$ = "5"
@@ -140,11 +140,17 @@ if $readfromfile$ = "off"
 	endif
 else
 	comment "read from file - only for debugging"
-	setloglevel=7
+	setloglevel=4
 	;set $softwareHashlist$ = loadUnicodeTextFile("c:\opsi.org\tmp\auditsoftware_%PCName%.txt")
 	;set $softwareOnClientHashlist$ = loadUnicodeTextFile("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt")
-	set $softwareHashlist$ = loadTextFileWithEncoding("c:\opsi.org\tmp\auditsoftware_%PCName%.txt","utf8")
-	set $softwareOnClientHashlist$ = loadTextFileWithEncoding("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt","utf8")
+	;set $softwareHashlist$ = loadTextFileWithEncoding("c:\opsi.org\tmp\auditsoftware_%PCName%.txt","utf8")
+	set $orglist$ = loadTextFileWithEncoding("c:\opsi.org\tmp\auditsoftware_%PCName%.txt","utf8")
+	for %aktstr% in $orglist$ do sub_fix_utf8_list
+	set $softwareHashlist$ = $fixlist$
+	;set $softwareOnClientHashlist$ = loadTextFileWithEncoding("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt","utf8")
+	set $orglist$ = loadTextFileWithEncoding("c:\opsi.org\tmp\auditsoftwareOnClient_%PCName%.txt","utf8")
+	for %aktstr% in $orglist$ do sub_fix_utf8_list
+	set $softwareOnClientHashlist$ = $fixlist$
 endif
 if $write2file$ = "on"
 	message "writing results back to file ..."
@@ -513,7 +519,7 @@ endif
 [sub_fix_utf8]
 if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.11.6.3")
 	if not (isValidUtf8String($fixstr$))
-		setLoglevel = 8
+		setLoglevel = 6
 		set $displayVersion$ = getFixedUtf8String($displayVersion$)
 		LogError $fixtitle$+" was no valid string: "+$displayVersion$
 		setloglevel=$Midloglevel$
@@ -524,16 +530,17 @@ endif
 
 [sub_fix_utf8_list]
 if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.11.6.3")
-	set $fixstr$ = "%aktstr%"
+	;set $fixstr$ =  RegString("%aktstr%")
+	set $fixstr$ =  '%aktstr%'
 	if not (isValidUtf8String($fixstr$))
-		setLoglevel = 8
+		setLoglevel = 6
 		set $fixstr$ = getFixedUtf8String($fixstr$)
 		LogError "%aktstr% was no valid string: "+$fixstr$
 		setloglevel=$Midloglevel$
 	endif
-	set $fixlist = addtolist($fixlist$,$fixstr$)
+	set $fixlist$ = addtolist($fixlist$,$fixstr$)
 else
-	set $fixlist = addtolist($fixlist$,"%aktstr%")
+	set $fixlist$ = addtolist($fixlist$,"%aktstr%")
 endif
 
 
@@ -552,7 +559,7 @@ set $uninstkeys$ = addtolist($uninstkeys$, $tmp$)
 
 [Winbatch_start_keyfinder]
 ;"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /savecsv "c:\opsi.org\tmp\" /file "swaudit_keys.csv"
-"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "c:\opsi.org\tmp\" /file "swaudit_keys.ini
+"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "c:\opsi.org\tmp\" /file "swaudit_keys.ini"
 
 [Files_del_temp]
 del "c:\opsi.org\tmp\swaudit_keys.ini"
