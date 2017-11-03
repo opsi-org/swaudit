@@ -5,6 +5,7 @@
 
 [actions]
 requiredWinstVersion >= "4.11.3.2"
+ScriptErrorMessages = off
 DefVar $Highloglevel$
 DefVar $Midloglevel$
 DefVar $Lowloglevel$
@@ -420,10 +421,10 @@ set $usageFrequency$ = "-1"
 ;set $ident$ = $name$+";"+$version$+";"+$subversion$+";"+$language$+";"+$architecture$
 set $softwareHashlist$ = addtolist($softwareHashlist$, "[newmap]")
 set $softwareHashlist$ = addtolist($softwareHashlist$, "type=AuditSoftware")
-set $softwareHashlist$ = addtolist($softwareHashlist$, "name="+$name$)
-set $softwareHashlist$ = addtolist($softwareHashlist$, "version="+$version$)
-set $softwareHashlist$ = addtolist($softwareHashlist$, "subVersion="+$subversion$)
-set $softwareHashlist$ = addtolist($softwareHashlist$, "language="+$Language$)
+set $softwareHashlist$ = addtolist($softwareHashlist$, "name="+strPart($name$,"1","99"))
+set $softwareHashlist$ = addtolist($softwareHashlist$, "version="+strPart($version$,"1","99"))
+set $softwareHashlist$ = addtolist($softwareHashlist$, "subVersion="+strPart($subversion$,"1","99"))
+set $softwareHashlist$ = addtolist($softwareHashlist$, "language="+strPart($Language$,"1","9"))
 set $softwareHashlist$ = addtolist($softwareHashlist$, "architecture="+$architecture$)
 set $softwareHashlist$ = addtolist($softwareHashlist$, "windowsSoftwareId="+$winSoftwareId$)
 set $softwareHashlist$ = addtolist($softwareHashlist$, "windowsDisplayName="+$displayName$)
@@ -432,10 +433,10 @@ set $softwareHashlist$ = addtolist($softwareHashlist$, "installSize="+$installSi
 
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "[newmap]")
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "type=AuditSoftwareOnClient")
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "name="+$name$)
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "version="+$version$)
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "subVersion="+$subversion$)
-set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "language="+$Language$)
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "name="+strPart($name$,"1","99"))
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "version="+strPart($version$,"1","99"))
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "subVersion="+strPart($subversion$,"1","99"))
+set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "language="+strPart($Language$,"1","9"))
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "architecture="+$architecture$)
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "clientId="+$clientId$)
 set $softwareOnClientHashlist$ = addtolist($softwareOnClientHashlist$, "uninstallString="+$uninstallString$)

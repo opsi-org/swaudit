@@ -1,3 +1,11 @@
+swaudit (4.0.2-3) stable; urgency=low
+
+  * Fix duplicate entry: truncating all parts of the primary key to their max length in the DB: "name="+strPart($name$,"1","99")
+  * ScriptErrorMessages = off
+
+ -- detlef oertel <d.oertel@uib.de>  Mon, 05 Aug 2013 15:00:00 +0100
+
+
 swaudit (4.0.2-2) stable; urgency=low
 
   * switch to ekeyfinder (https://sourceforge.net/projects/ekeyfinder/)
