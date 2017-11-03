@@ -4,7 +4,7 @@
 
 
 [actions]
-requiredWinstVersion >= "4.11.3.11"
+requiredWinstVersion >= "4.11.4"
 ScriptErrorMessages = off
 DefVar $Highloglevel$
 DefVar $Midloglevel$
@@ -77,9 +77,10 @@ setloglevel = $Highloglevel$
 
 
 Message "Running software audit..."
-ShowBitmap "%SCRIPTPATH%\swaudit.png" "Software Inventarisierung"
+ShowBitmap "%SCRIPTPATH%\swaudit.png" "Software Inventory"
 
-if GetMsVersionInfo < "5.0"
+;if GetMsVersionInfo < "5.0"
+if CompareDotSeparatedNumbers(GetMsVersionInfo,"5.0") < "0"
 	logError "Installation aborted: wrong OS version: only win2k and above alowed"
 	isFatalError
 endif
@@ -126,7 +127,8 @@ if $readfromfile$ = "off"
 	sub_get_windows_info
 	sub_create_hash4
 	setloglevel=$Highloglevel$
-	if GetMsVersionInfo >= "6"
+	;if GetMsVersionInfo >= "6"
+	if CompareDotSeparatedNumbers(GetMsVersionInfo,"6.0") >= "0"
 		message "collecting hotfixes ..."
 		sub_get_nt6_hotfix_info
 		setloglevel = $Highloglevel$
@@ -298,7 +300,8 @@ set $usageFrequency$ = "-1"
 set $binaryName$ = ""
 set $lastUsed$ = ""
 
-if GetMsVersionInfo < "5.1"
+;if GetMsVersionInfo < "5.1"
+if CompareDotSeparatedNumbers(GetMsVersionInfo,"5.1") < "0"
 	; GetRegistryStringValueSysNative does not work at win2k
 	; i.e. Windows 2000
 	Set $CurrentVersionProductName$ = GetRegistryStringValue("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductName")
@@ -467,10 +470,10 @@ set $tmp$ = takeFirstStringContaining(splitstring($tmp$,"]"), $uninstkey$)
 set $uninstkeys$ = addtolist($uninstkeys$, $tmp$)
 
 [Winbatch_start_keyfinder]
-"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "c:\opsi.org\tmp\" /file "swaudit_keys.ini"
+"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /savecsv "c:\opsi.org\tmp\" /file "swaudit_keys.csv"
 
 [Files_del_temp]
-del "c:\opsi.org\tmp\swaudit_keys.ini"
+del "c:\opsi.org\tmp\swaudit_keys.csv"
 
 [opsiservicecall_authenticated]
 "method": "authenticated"

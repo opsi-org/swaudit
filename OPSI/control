@@ -1,5 +1,5 @@
 [Package]
-version: 2
+version: 3
 depends: 
 incremental: False
 
@@ -58,6 +58,19 @@ values: ["off", "on"]
 default: ["off"]
 
 [Changelog]
+swaudit (4.0.5-3) stable; urgency=low
+
+  * Script fixes for win10
+  * Go back to old but open source keyfinder
+
+-- detlef oertel <d.oertel@uib.de>  Mon, 29 Jun 2015 15:00:00 +0100
+
+swaudit (4.0.6-1) experimental; urgency=low
+
+  * Updated keyfinder.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 07 Apr 2015 10:47:53 +0100
+
 swaudit (4.0.5-2) stable; urgency=low
 
   * Fix handling of keys containing quotation marks
@@ -246,6 +259,8 @@ swaudit (1.2.3-3) stable; urgency=low
   * some bugfixes in charset de/encoding
 
  -- Jan Schneider <j.schneider@uib.de>  Mon, 16 Mar 2009 15:15:27 +0100
+
+
 
 
 
