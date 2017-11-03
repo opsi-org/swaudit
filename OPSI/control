@@ -1,0 +1,50 @@
+[Package]
+version: 12
+depends: 
+incremental: False
+
+[Product]
+type: localboot
+id: swaudit
+name: Client software inventory
+description: Software inventory based on uninstall informations from windows registry
+advice: 
+version: 4.0
+priority: -90
+licenseRequired: False
+productClasses: 
+setupScript: swaudit4.ins
+uninstallScript: 
+updateScript: 
+alwaysScript: swaudit4.ins
+onceScript: 
+customScript: 
+userLoginScript: 
+
+[ProductProperty]
+type: unicode
+name: extended_search
+multivalue: False
+editable: False
+description: Search for binary name, language, .....
+values: ["off", "on"]
+default: ["on"]
+
+[ProductProperty]
+type: unicode
+name: usefilebuffer
+multivalue: False
+editable: False
+description: Save results to file and reread it
+values: ["off", "on"]
+default: ["off"]
+
+[ProductProperty]
+type: unicode
+name: usekeyfinder
+multivalue: False
+editable: False
+description: Try to find license keys
+values: ["off", "on"]
+default: ["on"]
+
