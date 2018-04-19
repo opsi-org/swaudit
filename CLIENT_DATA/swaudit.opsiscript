@@ -64,6 +64,9 @@ DefStringList $softwareObjectList$
 DefVar $softwareOnClientObject$
 DefVar $softwareOnClientObjectArray$
 DefStringList $softwareOnClientObjectList$
+DefVar $include_win_hotfixes$
+DefVar $isfatal$
+DefVar $fatalmessage$
 
 
 set $ProductId$ = "swaudit"
@@ -76,9 +79,11 @@ set $readfromfile$ = GetProductProperty("readfromfile","off")
 set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
 set $usekeyfinder$ = GetProductProperty("usekeyfinder","off")
 set $debug_send$ = GetProductProperty("debug_send","false")
+set $include_win_hotfixes$ = GetProductProperty("include_win_hotfixes","true")
 set $Highloglevel$ = "8"
 set $Midloglevel$ = "5"
 set $Lowloglevel$ = "4"
+set $isfatal$ = "false"
 ;set $Highloglevel$ = "5"
 ;set $Midloglevel$ = "5"
 ;set $Lowloglevel$ = "6"
@@ -181,9 +186,11 @@ if $readfromfile$ = "off"
   	
   	
 		if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
-			message "collecting hotfixes ..."
-			sub_get_nt6_hotfix_info
-			setloglevel = $Highloglevel$
+			if $include_win_hotfixes$ = "true"
+				message "collecting hotfixes ..."
+				sub_get_nt6_hotfix_info
+				setloglevel = $Highloglevel$
+			endif
 		endif  ; nt6
 		;comment "convert object list to json array .."
 		;set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
@@ -306,6 +313,10 @@ else
 
 endif
 Files_del_temp
+
+if $isfatal$ = "true"
+	isFatalError $fatalmessage$
+endif
 
 ; ---------- end of main program -------------------------
 
@@ -450,7 +461,38 @@ set $installSize$ = "-1"
 set $binaryName$ = ""
 set $Language$ = LangCodeByHex("0x0000")
 
+markErrorNumber
+set $resultlist$ = shellCall("wmic path Win32_QuickFixEngineering get hotfixid")
 set $resultlist$ = shellCall("wmic qfe get hotfixid")
+if errorsOccurredSinceMark > 0
+	LogError "Could not get hotfixes via wmic qfe - fatal"
+	set $isfatal$ = "true"
+	set $fatalmessage$ = "no hotfix"
+endif
+if not(getlastexitcode = "0")
+	LogError "Could not get hotfixes via wmic qfe - fatal"
+	set $isfatal$ = "true"
+	set $fatalmessage$ = "no hotfix"
+endif
+if contains(takestring(0,$resultlist$),"Instan")
+	LogError "Could not get hotfixes via wmic qfe - fatal"
+	set $isfatal$ = "true"
+	set $fatalmessage$ = "no hotfix"
+endif
+if $isfatal$ = "true"
+	if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.12.0.16")
+		comment "Retry with powershell ...."
+		set $resultlist$ = powershellCall("Get-HotFix | select -expand HotFixID")
+		if not(getlastexitcode = "0")
+			LogError "Could not get hotfixes via wmic qfe - fatal"
+			set $isfatal$ = "true"
+			set $fatalmessage$ = "no hotfix"
+		else
+			set $isfatal$ = "false"
+		endif
+	endif
+endif
+
 set $resultlist$ = getListContaining($resultlist$, "KB")
 for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
 

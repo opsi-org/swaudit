@@ -1,7 +1,6 @@
 [Package]
-version: 2
+version: 1
 depends: 
-incremental: False
 
 [Product]
 type: localboot
@@ -9,7 +8,7 @@ id: swaudit
 name: Client Software inventory (Windows / Linux)
 description: Windows: uninstall informations from registry; Linux: form package system
 advice: opsi-script >= 4.11.6.4 needed
-version: 4.0.7.6
+version: 4.1.0.0
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -63,7 +62,20 @@ name: debug_send
 description: ONLY DEBUG - Send data using one serviceall per object
 default: False
 
+[ProductProperty]
+type: bool
+name: include_win_hotfixes
+description: Try to collect Hotfix data - set failed if this is not possible on windows
+default: True
+
 [Changelog]
+swaudit (4.1.0.0-1) stable; urgency=low
+
+  * new property include_win_hotfixes (default=true)
+  * if wmic call for hotfixes failed retry with powershell
+
+-- detlef oertel <d.oertel@uib.de>  Thu, 19 Apr 2018 15:00:00 +0100
+
 swaudit (4.0.7.6-2) stable; urgency=low
 
   * use of property 'max loglevel' modified
