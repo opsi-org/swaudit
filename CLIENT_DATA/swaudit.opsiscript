@@ -110,8 +110,8 @@ ShowBitmap "%SCRIPTPATH%\swaudit.png" "Software Inventarisierung"
 
 set $OS$ = GetOS
 
-if not(($OS$ = "Linux") or ($OS$ = "Windows_NT"))
-	logError "Run aborted: wrong OS : only windows NT or linux supported"
+if not(($OS$ = "Linux") or ($OS$ = "Windows_NT") or ($OS$ = "macos"))
+	logError "Run aborted: wrong OS : only windows NT, macos or linux supported"
 	isFatalError "Wrong OS"
 endif
 
@@ -195,35 +195,42 @@ if $readfromfile$ = "off"
 		;comment "convert object list to json array .."
 		;set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
 		;set $softwareOnClientObjectArray$ = jsonStringListToJsonArray($softwareOnClientObjectList$)
-	else ; Windows
-		if $OS$ = "Linux"
-			message "collecting products ..."
-			sub_getswdetails4_os
-			
-			if $distrotype$ = "debian"
-				setloglevel = $Midloglevel$
-				set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
-				for %aktline% in $outLines$ do sub_getswdetails4_deb
-				setloglevel=$Highloglevel$
-			endif  ; debian
-			if $distrotype$ = "suse"
-				setloglevel = $Midloglevel$
-				set $outLines$ = getOutstreamFromSection("shellInAnIcon_suse")
-				for %aktline% in $outLines$ do sub_getswdetails4_suse
-				setloglevel=$Highloglevel$
-			endif  ; suse
-			if $distrotype$ = "redhat"
-				setloglevel = $Midloglevel$
-				set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
-				for %aktline% in $outLines$ do sub_getswdetails4_redhat
-				setloglevel=$Highloglevel$
-			endif  ; redhat
-		else ; not windows not Linux
-			; we should never end here
-			LogError "Wrong OS: Product: " + $ProductId$ + "is only for Linux / Windows_NT"
-			isFatalError "Wrong OS"
-		endif ; linux
-	endif ; windows
+	endif ; Windows
+	if $OS$ = "Linux"
+		message "collecting products ..."
+		sub_getswdetails4_os
+		
+		if $distrotype$ = "debian"
+			setloglevel = $Midloglevel$
+			set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
+			for %aktline% in $outLines$ do sub_getswdetails4_deb
+			setloglevel=$Highloglevel$
+		endif  ; debian
+		if $distrotype$ = "suse"
+			setloglevel = $Midloglevel$
+			set $outLines$ = getOutstreamFromSection("shellInAnIcon_suse")
+			for %aktline% in $outLines$ do sub_getswdetails4_suse
+			setloglevel=$Highloglevel$
+		endif  ; suse
+		if $distrotype$ = "redhat"
+			setloglevel = $Midloglevel$
+			set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
+			for %aktline% in $outLines$ do sub_getswdetails4_redhat
+			setloglevel=$Highloglevel$
+		endif  ; redhat
+	endif ; linux
+	if $OS$ = "macos"
+		message "collecting products ..."
+		;sub_getswdetails4_os
+		
+		setloglevel = $Midloglevel$
+		;set $outLines$ = getOutstreamFromSection("shellInAnIcon_macos1")
+		set $outLines$ = shellCall('pkgutil --pkgs')
+		for %aktline% in $outLines$ do sub_getswdetails4_macos1
+		set $outLines$ = shellCall("find / -iname *.app | sed -i '/\.app.*\.app/d'")
+		for %aktline% in $outLines$ do sub_getswdetails4_macos2
+		setloglevel=$Highloglevel$
+	endif ; macos
 	setloglevel = $Midloglevel$
 	comment "convert object list to json array .."
 	set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
@@ -707,6 +714,39 @@ if not ("%aktline%" = "")
 	sub_create_hash4
 endif
 ;;;;;;;; Linux end
+; #####  macos start #############################################
+
+[shellInAnIcon_macos1]
+
+[sub_getswdetails4_macos1]
+setloglevel=$Midloglevel$
+if not ("%aktline%" = "")
+	sub_init_vars
+	set $resultlist$ = shellCall('pkgutil --pkg-info %aktline%')
+	set $displayName$ = getValueBySeparator('package-id',':',$resultlist$)
+	if not ($displayName$ = '')
+		set $displayVersion$ = getValueBySeparator('version',':',$resultlist$)
+		set $winSoftwareId$ = "%aktline%"
+		set $architecture$ = "x64"
+		sub_create_hash4
+	endif
+endif
+
+[sub_getswdetails4_macos2]
+setloglevel=$Midloglevel$
+if not ("%aktline%" = "")
+	sub_init_vars
+	;set $resultlist$ = shellCall('pkgutil --pkg-info %aktline%')
+	set $displayName$ = ExtractFileName("%aktline%")
+	if not ($displayName$ = '')
+		set $winSoftwareId$ = $displayName$
+		set $architecture$ = "x64"
+		sub_create_hash4
+	endif
+endif
+
+
+; #####  macos end #############################################
 [Files_del_temp]
 delete "%opsiTmpDir%\swaudit_keys.ini"
 
