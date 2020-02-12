@@ -7,8 +7,8 @@ type: localboot
 id: swaudit
 name: Client Software inventory (Windows / Linux / macos)
 description: Windows: uninstall informations from registry; Linux: form package system
-advice: opsi-script >= 4.12.0.1 needed
-version: 4.1.0.1
+advice: opsi-script >= 4.12.1.5 needed
+version: 4.1.0.2
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -54,7 +54,7 @@ multivalue: False
 editable: False
 description: Reduce log file size by setting lower max log level
 values: ["3", "4", "5", "6", "7", "8"]
-default: ["8"]
+default: ["5"]
 
 [ProductProperty]
 type: bool

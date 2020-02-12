@@ -1,0 +1,93 @@
+
+encoding=utf8
+
+DefFunc create_hash4() : void
+
+	if $displayName$ = ""
+		set $name$ = $winSoftwareId$
+	else
+		set $name$ = $displayName$
+	endif
+	if $version$ = ""
+		set $version$ = $displayVersion$
+	endif
+	
+	setloglevel = $Highloglevel$
+	
+	
+	comment "Product: "+$name$+" Version: "+$version$+" Archticture: "+$architecture$
+	;comment ""
+	;comment "next product is...."
+	;comment "$name$  ----------------= "+$name$
+	;comment "$version$ --------------= "+$version$
+	;comment "$subVersion$ -----------= "+$subVersion$
+	;comment "$language$ -------------= "+$language$
+	;comment "$architecture$ ---------= "+$architecture$
+	;comment "$windowsSoftwareId$ ----= "+$winSoftwareId$
+	;comment "$windowsDisplayName$ ---= "+$displayName$
+	;comment "$windowsDisplayVersion$ = "+$displayVersion$
+	;comment "$uninstallString$ ------= "+$uninstallString$
+	;comment "$installSize$ ----------= "+$installSize$
+	;comment "$displayVersion$ -------= "+$displayVersion$
+	;comment "$binaryName$ -----------= "+$binaryName$
+	;comment "$licenseKey$ -----------= "+$licenseKey$
+	
+	setloglevel = $Lowloglevel$
+	
+	
+	; trim entries to DB field length
+	set $name$ = strPart($name$,"1","99")
+	set $version$ = strPart($version$,"1","99")
+	set $subversion$ = strPart($subversion$,"1","99")
+	set $Language$ = strPart($Language$,"1","9")
+	set $architecture$ = strPart($architecture$,"1","3")
+	set $winSoftwareId$ = strPart($winSoftwareId$,"1","99")
+	set $displayName$ = strPart($displayName$,"1","99")
+	set $displayVersion$ = strPart($displayVersion$,"1","99")
+	set $clientId$ = strPart($clientId$,"1","254")
+	set $uninstallString$ = strPart($uninstallString$,"1","199")
+	set $binaryName$ = strPart($binaryName$,"1","99")
+	set $licenseKey$ = strPart($licenseKey$,"1","254")
+	
+	; make json objects
+	set $softwareObject$ = "{}"
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"type","AuditSoftware")
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"name",$name$)
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"version",$version$)
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"subVersion",$subVersion$)
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"language",$language$)
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"architecture",$architecture$)
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsSoftwareId",$winSoftwareId$)
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayName",$displayName$)
+	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayVersion",$displayVersion$)
+	set $softwareObject$ = jsonAsObjectSetValueByKey($softwareObject$,"installSize",$installSize$)
+	set $softwareObjectList$ = addtolist($softwareObjectList$,$softwareObject$)
+	
+	set $softwareOnClientObject$ = "{}"
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"type","AuditSoftwareOnClient")
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"name",$name$)
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"version",$version$)
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"subVersion",$subVersion$)
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"language",$language$)
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"architecture",$architecture$)
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"clientId",$clientId$)
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"uninstallString",$uninstallString$)
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"binaryName",$binaryName$)
+	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"licenseKey",$licenseKey$)
+	set $softwareOnClientObjectList$ = addtolist($softwareOnClientObjectList$,$softwareOnClientObject$)
+EndFunc
+
+DefFunc init_vars() : void
+
+	set $installSize$ = "-1"
+	set $architecture$ = ""
+	set $version$ = ""
+	set $displayName$ = ""
+	set $displayVersion$ = ""
+	set $binaryName$ = ""
+	set $Language$ = ""
+	set $subVersion$ = ""
+	set $uninstallString$ = ""
+	set $binaryName$ = ""
+	set $licenseKey$ = ""
+EndFunc
