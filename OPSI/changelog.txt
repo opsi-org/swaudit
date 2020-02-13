@@ -3,6 +3,7 @@ swaudit (4.1.0.2-1) stable; urgency=low
 
   * macos integration extended
   * code redesign with defined functions
+  * shellInAnIcon_deb: no rc state pakages: fixes: #4402
 
 -- detlef oertel <d.oertel@uib.de>  Wed, 12 Feb 2020 15:00:00 +0100
 

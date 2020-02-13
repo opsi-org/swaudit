@@ -86,7 +86,7 @@ set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
 set $usekeyfinder$ = GetProductProperty("usekeyfinder","off")
 set $debug_send$ = GetProductProperty("debug_send","false")
 set $include_win_hotfixes$ = GetProductProperty("include_win_hotfixes","true")
-set $Highloglevel$ = "8"
+set $Highloglevel$ = "7"
 set $Midloglevel$ = "5"
 set $Lowloglevel$ = "4"
 set $isfatal$ = "false"
@@ -109,7 +109,7 @@ if $selectedMaxLogLevel$ INT< $Highloglevel$
 endif
 
 
-setloglevel = $Midloglevel$
+setloglevel = 5
 
 Message "Running software audit..."
 ShowBitmap "%SCRIPTPATH%\swaudit.png" "Software Inventarisierung"
@@ -646,7 +646,8 @@ endif
 ;
 [shellInAnIcon_deb]
 # dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${STATUS}\n'
-dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${INSTALLED-SIZE}\n'
+# dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${INSTALLED-SIZE}\n'
+dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${INSTALLED-SIZE}\t${db:Status-Abbrev}\n'
 
 [shellInAnIcon_suse]
 zypper se -i -s

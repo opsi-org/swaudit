@@ -28,7 +28,10 @@ DefFunc getswdetails4_deb($aktkey$ : string) : void
 		init_vars()
 		set $resultlist$ = splitStringOnWhiteSpace($aktkey$)
 		set $displayName$ = takeString(0,$resultlist$)
-		if not ($displayName$ = '')
+		; get install state
+		set $tmp$ = takeString(4,$resultlist$)
+		;do not include packages with state 'rc'
+		if not ($displayName$ = '') and not($tmp$ = 'rc')
 			set $displayVersion$ = takeString(1,$resultlist$)
 			set $installSize$ = takeString(3,$resultlist$)
 			if not(isNumber($installSize$))
