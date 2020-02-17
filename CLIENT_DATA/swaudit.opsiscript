@@ -40,6 +40,9 @@ DefVar $proccall$
 DefVar $serviceMethod$
 DefVar $aktkey$
 DefVar $tmp$
+DefVar $CurrentBuild$
+DefVar $UBR$
+DefVar $win10subversion$
 
 ; linux vars
 DefVar $distCodeName$
@@ -79,7 +82,8 @@ set $readfromfile$ = GetProductProperty("readfromfile","off")
 set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
 set $usekeyfinder$ = GetProductProperty("usekeyfinder","off")
 set $debug_send$ = GetProductProperty("debug_send","false")
-set $include_win_hotfixes$ = GetProductProperty("include_win_hotfixes","true")
+set $win10subversion$ = GetProductProperty("win10subversion","hklmproductid")
+set $include_win_hotfixes$ = "true"
 set $Highloglevel$ = "8"
 set $Midloglevel$ = "5"
 set $Lowloglevel$ = "4"
@@ -431,9 +435,18 @@ endif
 Set $uninstallString$ = ""
 Set $name$ = $displayName$
 ;Set $version$ = $CurrentVersionCurrentVersion$
+Set $subversion$ = takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
 ; This is 6.3 on win10 - so we use the real version from api with manifest
 Set $version$ = GetMsVersionInfo
-Set $subversion$ = takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
+if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","10.0") and ($win10subversion$ = "win10osbuild")
+	; get OS Build Version analogous https://support.microsoft.com/en-us/help/4464619
+	; https://docs.microsoft.com/en-us/windows/windows-10/release-information
+
+	Set $CurrentBuild$ = getRegistryValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "CurrentBuild")
+	Set $UBR$ = getRegistryValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR")
+	 Set $subversion$ = $CurrentBuild$ + "." + $UBR$
+
+endif
 if $usekeyfinder$ = "on"
 	set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
 else
@@ -467,34 +480,37 @@ set $resultlist$ = shellCall("wmic qfe get hotfixid")
 if errorsOccurredSinceMark > 0
 	LogError "Could not get hotfixes via wmic qfe - fatal"
 	set $isfatal$ = "true"
-	set $fatalmessage$ = "no hotfix"
+	set $fatalmessage$ = "hotfix failed"
 endif
 if not(getlastexitcode = "0")
 	LogError "Could not get hotfixes via wmic qfe - fatal"
 	set $isfatal$ = "true"
-	set $fatalmessage$ = "no hotfix"
+	set $fatalmessage$ = "hotfix failed"
 endif
-if contains(takestring(0,$resultlist$),"Instan")
-	LogError "Could not get hotfixes via wmic qfe - fatal"
-	set $isfatal$ = "true"
-	set $fatalmessage$ = "no hotfix"
-endif
-if $isfatal$ = "true"
+if ($fatalmessage$ = "hotfix failed")
+	set $resultlist$ = emptylist($resultlist$)
 	if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.12.0.16")
 		comment "Retry with powershell ...."
 		set $resultlist$ = powershellCall("Get-HotFix | select -expand HotFixID")
 		if not(getlastexitcode = "0")
-			LogError "Could not get hotfixes via wmic qfe - fatal"
+			LogError "Could not get hotfixes via powershell Get-HotFix"
 			set $isfatal$ = "true"
-			set $fatalmessage$ = "no hotfix"
+			set $fatalmessage$ = "hotfix failed"
+			comment "Retry for debugging with dism ...."
+			set $resultlist$ = shellCall("dism /online /get-packages /Format:Table /english")
 		else
 			set $isfatal$ = "false"
+			set $fatalmessage$ = ""
 		endif
 	endif
 endif
 
 set $resultlist$ = getListContaining($resultlist$, "KB")
-for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
+if count($resultlist$) = "0"
+	comment "No Windows hotfixes found"
+else
+	for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
+endif
 
 [sub_process_nt6_hotfix_info]
 setloglevel = $Midloglevel$
@@ -741,4 +757,7 @@ delete -f "%opsiTmpDir%\auditsoftware_%PCName%.json"
 delete -f "%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json"
 delete -f "%opsiTmpDir%\auditsoftware_%PCName%.txt"
 delete -f "%opsiTmpDir%\auditsoftwareOnClient_%PCName%.txt"
+
+[DosInAnIcon_ver]
+ver
 
