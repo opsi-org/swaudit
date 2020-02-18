@@ -1,0 +1,81 @@
+encoding=utf8
+
+
+DefFunc getswdetails4_macos1($aktkey$ : string) : void
+	setloglevel=$Midloglevel$
+	if not ($aktkey$ = "")
+		init_vars()
+		set $resultlist$ = shellCall('pkgutil --pkg-info '+$aktkey$)
+		set $displayName$ = getValueBySeparator('package-id',':',$resultlist$)
+		if not ($displayName$ = '')
+			set $displayVersion$ = getValueBySeparator('version',':',$resultlist$)
+			set $winSoftwareId$ = $aktkey$
+			set $architecture$ = "x64"
+			create_hash4()
+		endif
+	endif
+Endfunc
+	
+DefFunc getswdetails4_macos2($aktkey$ : string) : void
+	setloglevel=$Midloglevel$
+	if not ($aktkey$ = "")
+		init_vars()
+		;set $resultlist$ = shellCall('pkgutil --pkg-info %aktline%')
+		set $displayName$ = ExtractFileName($aktkey$)
+		if not ($displayName$ = '')
+			set $winSoftwareId$ = $displayName$
+			set $architecture$ = "x64"
+			create_hash4()
+		endif
+	endif
+Endfunc
+	
+DefFunc getswdetails4_macos3($aktkey$ : string) : void
+	setloglevel=$Midloglevel$
+	if not ($aktkey$ = "")
+		init_vars()
+		set $resultlist$ = loadtextfile($aktkey$)
+		set $index$ = getIndexFromListByContaining($resultlist$,"<key>CFBundleName</key>")
+		if isNumber($index$)
+			set $index$ = calculate($index$+" + 1")
+			set $tmp$ = takestring($index$,$resultlist$)
+			set $tmp$ = stringReplace($tmp$, "<string>", "")
+			set $tmp$ = stringReplace($tmp$, "</string>", "")
+			set $displayName$ = trim($tmp$)
+		endif
+		set $index$ = getIndexFromListByContaining($resultlist$,"<key>CFBundleShortVersionString</key>")
+		if isNumber($index$)
+			set $index$ = calculate($index$+" + 1")
+			set $tmp$ = takestring($index$,$resultlist$)
+			set $tmp$ = stringReplace($tmp$, "<string>", "")
+			set $tmp$ = stringReplace($tmp$, "</string>", "")
+			set $version$ = trim($tmp$)
+		endif
+		set $index$ = getIndexFromListByContaining($resultlist$,"<key>CFBundleIdentifier</key>")
+		if isNumber($index$)
+			set $index$ = calculate($index$+" + 1")
+			set $tmp$ = takestring($index$,$resultlist$)
+			set $tmp$ = stringReplace($tmp$, "<string>", "")
+			set $tmp$ = stringReplace($tmp$, "</string>", "")
+			set $winSoftwareId$ = trim($tmp$)
+		endif
+		set $architecture$ = "x64"
+		create_hash4()
+	endif
+Endfunc
+	
+DefFunc getswdetails4_macos4($aktkey$ : string) : void
+	setloglevel=$Midloglevel$
+	if not ($aktkey$ = "")
+		init_vars()
+		set $resultlist$ = splitstringOnWhitespace($aktkey$)
+		set $displayName$ = takeString(0,$resultlist$)
+		set $version$ = takeString(1,$resultlist$)
+		if not ($displayName$ = '')
+			set $winSoftwareId$ = "(Homebrew) "+$displayName$
+			set $architecture$ = "x64"
+			create_hash4()
+		endif
+	endif
+Endfunc
+

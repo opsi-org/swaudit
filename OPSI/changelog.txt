@@ -1,4 +1,18 @@
 [Changelog]
+swaudit (4.1.0.2-1) stable; urgency=low
+
+  * macos integration extended
+  * code redesign with defined functions
+  * shellInAnIcon_deb: no rc state pakages: fixes: #4402
+
+-- detlef oertel <d.oertel@uib.de>  Wed, 12 Feb 2020 15:00:00 +0100
+
+swaudit (4.1.0.1-1) stable; urgency=low
+
+  * macos integration
+
+-- detlef oertel <d.oertel@uib.de>  Thu, 06 Feb 2020 15:00:00 +0100
+
 swaudit (4.1.0.0-3) stable; urgency=low
   * new product property win10subversion
 	values: ["win10osbuild", "hklmproductid"]
@@ -17,6 +31,7 @@ swaudit (4.1.0.0-2) stable; urgency=low
 
 swaudit (4.1.0.0-1) stable; urgency=low
 
+  * new property include_win_hotfixes (default=true)
   * if wmic call for hotfixes failed retry with powershell
 
 -- detlef oertel <d.oertel@uib.de>  Thu, 19 Apr 2018 15:00:00 +0100
@@ -300,12 +315,6 @@ swaudit (1.2.3-3) stable; urgency=low
   * some bugfixes in charset de/encoding
 
  -- Jan Schneider <j.schneider@uib.de>  Mon, 16 Mar 2009 15:15:27 +0100
-
-
-
-
-
-
 
 
 

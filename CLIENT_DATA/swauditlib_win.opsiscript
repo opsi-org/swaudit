@@ -1,0 +1,192 @@
+encoding=utf8
+
+
+DefFunc getswdetails4_32($aktkey$ : string) : void
+	setloglevel = $Midloglevel$
+	
+	if not ($aktkey$ = "")
+		set $installSize$ = "-1"
+		set $binaryName$ = ""
+		set $Language$ = ""
+		set $licenseKey$ = ""
+		Set $displayVersion$ = ""
+		Set $version$ = ""
+		set $winSoftwareId$ = $aktkey$
+		if not ($winSoftwareId$ = "") 
+			set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
+			set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
+			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
+			set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
+			if $usekeyfinder$ = "on"
+				set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
+			endif
+			
+			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
+			if not($binaryName$ = "")
+				if FileExists($binaryName$)
+					set $VerInfoMap$ = getFileInfoMap($binaryName$)
+					set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
+					set $Language$ = LangCodeByHex($langCodeHex$)
+				endif
+			endif
+			create_hash4()
+		endif
+	endif
+Endfunc
+	
+DefFunc getswdetails4_64($aktkey$ : string) : void
+	if not ($aktkey$ = "")
+		set $installSize$ = "-1"
+		set $binaryName$ = ""
+		set $Language$ = ""
+		set $licenseKey$ = ""
+		Set $displayVersion$ = ""
+		Set $version$ = ""
+		set $winSoftwareId$ = $aktkey$
+		if not ($winSoftwareId$ = "") 
+			set $Language$ = ""
+			set $binaryName$ = ""
+			set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
+			set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
+			set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
+			if $usekeyfinder$ = "on"
+				set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
+			endif
+			
+			set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
+			if not($binaryName$ = "") 
+				if FileExists($binaryName$)
+					set $VerInfoMap$ = getFileInfoMap($binaryName$)
+					set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
+					set $Language$ = LangCodeByHex($langCodeHex$)
+				endif
+			endif
+			create_hash4()
+		endif
+	endif
+Endfunc
+	
+DefFunc get_windows_info() : void
+	DefVar $CurrentVersionProductName$
+	DefVar $CurrentVersionCSDVersion$
+	DefVar $CurrentVersionProductId$
+	DefVar $CurrentVersionCurrentVersion$
+	DefVar $CurrentVersionReleaseId$
+	DefStringList $localeMap$
+	
+	set $installSize$ = "-1"
+	set $binaryName$ = ""
+	
+	; i.e. Windows 7 professional N
+	Set $CurrentVersionProductName$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductName")
+	; i.e. ServicePack 1
+	Set $CurrentVersionCSDVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CSDVersion")
+	; i.e. 00376-165-5790905-86892
+	; http://wiki.lunarsoft.net/wiki/Product_IDs
+	; xxxxx-yyy-zzzzzzz-zzzzz
+	; xxxxx: microsoft product code (platform, build, language, and version of windows)
+	; yyy:   channel id (OEM, Volume License, Retail, bundle/Not For Resale)
+	Set $CurrentVersionProductId$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductId")
+	; i.e. 6.1
+	Set $CurrentVersionCurrentVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CurrentVersion")
+	
+	Set $winSoftwareId$  = "ms_windows_" + takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
+	;Set $displayVersion$ = $CurrentVersionCurrentVersion$
+	; This is 6.3 on win10 - so we use the real version from api with manifest
+	Set $displayVersion$ = GetMsVersionInfo
+	Set $displayName$    = $CurrentVersionProductName$
+	if not ($CurrentVersionCSDVersion$ = "")
+		Set $displayName$ = $displayName$ + " (" + $CurrentVersionCSDVersion$ + ")"
+	endif
+	if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","10.0")
+		Set $CurrentVersionReleaseId$ = GetRegistryStringValueSysNative('[HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion] ReleaseID')
+		if not ($CurrentVersionReleaseId$ = "")
+			Set $displayName$ = $displayName$ + " (" + $CurrentVersionReleaseId$ + ")"
+		endif
+	endif
+	Set $uninstallString$ = ""
+	Set $name$ = $displayName$
+	;Set $version$ = $CurrentVersionCurrentVersion$
+	; This is 6.3 on win10 - so we use the real version from api with manifest
+	Set $version$ = GetMsVersionInfo
+	Set $subversion$ = takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
+	if $usekeyfinder$ = "on"
+		set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
+	else
+		set $licenseKey$ = ""
+	endif
+	
+	Set $localeMap$ = getLocaleInfoMap
+	Set $Language$ = getValue("system_default_lang_region",$localeMap$)
+	
+	if (GetSystemType = "64 Bit System")
+		Set $architecture$ = "x64"
+	else
+		Set $architecture$ = "x86"
+	endif
+	create_hash4()
+Endfunc
+	
+DefFunc get_nt6_hotfix_info() : void
+	setloglevel = $Highloglevel$
+	
+	Set $displayVersion$ = ""
+	Set $uninstallString$ = ""
+	Set $version$ = ""
+	Set $subversion$ = ""
+	set $licenseKey$ = ""
+	set $installSize$ = "-1"
+	set $binaryName$ = ""
+	set $Language$ = LangCodeByHex("0x0000")
+	
+	markErrorNumber
+	set $resultlist$ = shellCall("wmic path Win32_QuickFixEngineering get hotfixid")
+	set $resultlist$ = shellCall("wmic qfe get hotfixid")
+	if errorsOccurredSinceMark > 0
+		LogError "Could not get hotfixes via wmic qfe - fatal"
+		set $isfatal$ = "true"
+		set $fatalmessage$ = "no hotfix"
+	endif
+	if not(getlastexitcode = "0")
+		LogError "Could not get hotfixes via wmic qfe - fatal"
+		set $isfatal$ = "true"
+		set $fatalmessage$ = "no hotfix"
+	endif
+	if contains(takestring(0,$resultlist$),"Instan")
+		LogError "Could not get hotfixes via wmic qfe - fatal"
+		set $isfatal$ = "true"
+		set $fatalmessage$ = "no hotfix"
+	endif
+	if $isfatal$ = "true"
+		if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.12.0.16")
+			comment "Retry with powershell ...."
+			set $resultlist$ = powershellCall("Get-HotFix | select -expand HotFixID")
+			if not(getlastexitcode = "0")
+				LogError "Could not get hotfixes via wmic qfe - fatal"
+				set $isfatal$ = "true"
+				set $fatalmessage$ = "no hotfix"
+			else
+				set $isfatal$ = "false"
+			endif
+		endif
+	endif
+	
+	set $resultlist$ = getListContaining($resultlist$, "KB")
+	for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
+	
+	[sub_process_nt6_hotfix_info]
+	setloglevel = $Midloglevel$
+	
+	Set $winSoftwareId$  = trim("%akthotfix%")
+	Set $displayName$    = trim("%akthotfix%")
+	Set $name$ = $displayName$
+	if (GetSystemType = "64 Bit System")
+		Set $architecture$ = "x64"
+	else
+		Set $architecture$ = "x86"
+	endif
+	create_hash4()
+Endfunc
+	
+	
+	
