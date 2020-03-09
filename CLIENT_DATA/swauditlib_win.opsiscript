@@ -110,6 +110,14 @@ DefFunc get_windows_info() : void
 	; This is 6.3 on win10 - so we use the real version from api with manifest
 	Set $version$ = GetMsVersionInfo
 	Set $subversion$ = takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
+	if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","10.0") and ($win10subversion$ = "win10osbuild")
+		; get OS Build Version analogous https://support.microsoft.com/en-us/help/4464619
+		; https://docs.microsoft.com/en-us/windows/windows-10/release-information
+		Set $CurrentBuild$ = getRegistryValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "CurrentBuild")
+		Set $UBR$ = getRegistryValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR")
+		Set $subversion$ = $CurrentBuild$ + "." + $UBR$
+	endif
+
 	if $usekeyfinder$ = "on"
 		set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
 	else
