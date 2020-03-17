@@ -1,4 +1,11 @@
 [Changelog]
+swaudit (4.1.0.3-1) stable; urgency=low
+
+  * reintegrate fixes from 4.1.0.0-3
+  * reintegrate fixes from 4.1.0.0-2
+
+-- detlef oertel <d.oertel@uib.de>  Tue, 17 Mar 2020 15:00:00 +0100
+
 swaudit (4.1.0.2-1) stable; urgency=low
 
   * macos integration extended
@@ -17,8 +24,8 @@ swaudit (4.1.0.0-3) stable; urgency=low
   * new product property win10subversion
 	values: ["win10osbuild", "hklmproductid"]
 	default: ["hklmproductid"]	
-	hklmproductid showrsa  begin of HKLM\Software\Mscrosoft\Windows NT\CurrentVersion] ProductId" for example 00330-71317
-	win10osbuild shows OS Build as found on https://docs.microsoft.com/en-us/windows/windows-10/release-information on on Win10 , Win 2016 , Win2019 from HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "CurrentBuild" and HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR"
+	hklmproductid showrsa  begin of HKLM\Software\Mscrosoft\Windows NT\CurrentVersion] ProductId (for example 00330-71317)
+	win10osbuild shows OS Build as found on https://docs.microsoft.com/en-us/windows/windows-10/release-information on on Win10 , Win 2016 , Win2019 from "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "CurrentBuild" and "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR"
 
 -- bardo wolf <b.wolf@uib.de>  Mon, 01 Apr 2019 12:26:01 +0100
 
