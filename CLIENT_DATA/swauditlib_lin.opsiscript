@@ -23,29 +23,40 @@ Endfunc
 	
 	
 DefFunc getswdetails4_deb($aktkey$ : string) : void
+	DefVar $listcount$
 	setloglevel=$Midloglevel$
 	if not ($aktkey$ = "")
 		init_vars()
 		set $resultlist$ = splitStringOnWhiteSpace($aktkey$)
+		set $listcount$ = count($resultlist$)
 		set $displayName$ = takeString(0,$resultlist$)
 		; get install state
-		set $tmp$ = takeString(4,$resultlist$)
+		set $tmp$ = ""
+		if $listcount$ int>= "5"
+			set $tmp$ = takeString(4,$resultlist$)
+		endif
 		;do not include packages with state 'rc'
 		if not ($displayName$ = '') and not($tmp$ = 'rc')
-			set $displayVersion$ = takeString(1,$resultlist$)
-			set $installSize$ = takeString(3,$resultlist$)
-			if not(isNumber($installSize$))
-				set $installSize$ = "-1"
-			endif
-			set $tmp$ = takeString(2,$resultlist$)
-			if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
-				set $architecture$ = "x86"
-			endif
-			if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
-				set $architecture$ = "x64"
-			endif
-			if ($tmp$ = "noarch") or ($tmp$ = "all") 
-				set $architecture$ = ""
+			if $listcount$ int>= "2"
+				set $displayVersion$ = takeString(1,$resultlist$)
+				if $listcount$ int>= "3"
+					set $tmp$ = takeString(2,$resultlist$)
+					if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
+						set $architecture$ = "x86"
+					endif
+					if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+						set $architecture$ = "x64"
+					endif
+					if ($tmp$ = "noarch") or ($tmp$ = "all") 
+						set $architecture$ = ""
+					endif
+					if $listcount$ int>= "4"
+						set $installSize$ = takeString(3,$resultlist$)
+						if not(isNumber($installSize$))
+							set $installSize$ = "-1"
+						endif
+					endif
+				endif
 			endif
 			set $winSoftwareId$ = $displayName$
 				

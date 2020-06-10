@@ -162,7 +162,7 @@ if $readfromfile$ = "off"
 			message "collecting license keys ..."
 			set $proccall$ = '"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "%opsiTmpDir%\" /file "swaudit_keys.ini"'
 			setloglevel = $Highloglevel$
-  	
+			
 			set $exitcode$ = processcall($proccall$)
 			set $LicenseSections$ = GetSectionNames("%opsiTmpDir%\swaudit_keys.ini")
 			setloglevel = $Midloglevel$
@@ -180,7 +180,7 @@ if $readfromfile$ = "off"
 		message "collecting 32 Bit products ..."
 		set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
 		setloglevel = $Highloglevel$
-  	
+		
 		
 		message "collecting 32 Bit product details ..."
 		set $architecture$ = "x86"
@@ -188,12 +188,12 @@ if $readfromfile$ = "off"
 		set $Language$ = ""
 		for %aktkey% in $uninstKeys$ do getswdetails4_32("%aktkey%")
 		setloglevel = $Highloglevel$
-  	
+		
 		message "collecting os details ..."
 		get_windows_info()
 		setloglevel = $Midloglevel$
-  	
-  	
+		
+		
 		if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
 			if $include_win_hotfixes$ = "true"
 				message "collecting hotfixes ..."
@@ -205,34 +205,34 @@ if $readfromfile$ = "off"
 		;set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
 		;set $softwareOnClientObjectArray$ = jsonStringListToJsonArray($softwareOnClientObjectList$)
 	endif ; Windows
-		if $OS$ = "Linux"
-			message "collecting products ..."
+	if $OS$ = "Linux"
+		message "collecting products ..."
 		getswdetails4_os()
-			
-			if $distrotype$ = "debian"
-				setloglevel = $Midloglevel$
-				set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
+		
+		if $distrotype$ = "debian"
+			setloglevel = $Midloglevel$
+			set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
 			for %aktline% in $outLines$ do getswdetails4_deb("%aktline%")
-				setloglevel=$Highloglevel$
-			endif  ; debian
-			if $distrotype$ = "suse"
-				setloglevel = $Midloglevel$
-				set $outLines$ = getOutstreamFromSection("shellInAnIcon_suse")
+			setloglevel=$Highloglevel$
+		endif  ; debian
+		if $distrotype$ = "suse"
+			setloglevel = $Midloglevel$
+			set $outLines$ = getOutstreamFromSection("shellInAnIcon_suse")
 			for %aktline% in $outLines$ do getswdetails4_suse("%aktline%")
-				setloglevel=$Highloglevel$
-			endif  ; suse
-			if $distrotype$ = "redhat"
-				setloglevel = $Midloglevel$
-				set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
+			setloglevel=$Highloglevel$
+		endif  ; suse
+		if $distrotype$ = "redhat"
+			setloglevel = $Midloglevel$
+			set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
 			for %aktline% in $outLines$ do getswdetails4_redhat("%aktline%")
-				setloglevel=$Highloglevel$
-			endif  ; redhat
-		endif ; linux
+			setloglevel=$Highloglevel$
+		endif  ; redhat
+	endif ; linux
 	if $OS$ = "macos"
 		message "collecting products 1..."
 		;sub_getswdetails4_os
 		
-	setloglevel = $Midloglevel$
+		setloglevel = $Midloglevel$
 		;set $outLines$ = getOutstreamFromSection("shellInAnIcon_macos1")
 		set $outLines$ = shellCall('pkgutil --pkgs')
 		for %aktline% in $outLines$ do getswdetails4_macos1("%aktline%")
@@ -301,7 +301,7 @@ else
 	set $softwareObjectArray$ = stringReplace($softwareObjectArray$, "'", "''")
 	set $softwareOnClientObjectArray$ = stringReplace($softwareOnClientObjectArray$, "'", "''")
 	setloglevel = $Highloglevel$
-
+	
 	if $debug_send$ = "true"
 		setloglevel = $Midloglevel$
 		comment "we use debug_send: one servicall per object"
@@ -338,7 +338,7 @@ else
 			isFatalError
 		endif
 	endif
-
+	
 endif
 Files_del_temp
 
@@ -348,305 +348,6 @@ endif
 
 ; ---------- end of main program -------------------------
 
-
-;[sub_getswdetails4_32]
-;setloglevel = $Midloglevel$
-;
-;; use EscapeString to handle keys with quotation
-;set $aktkey$ = EscapeString:%aktkey%
-;if not ($aktkey$ = "")
-;	set $installSize$ = "-1"
-;	set $binaryName$ = ""
-;	set $Language$ = ""
-;	set $licenseKey$ = ""
-;	Set $displayVersion$ = ""
-;	Set $version$ = ""
-;	set $winSoftwareId$ = $aktkey$
-;	if not ($winSoftwareId$ = "") 
-;		set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
-;		set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
-;		set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
-;		set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
-;		if $usekeyfinder$ = "on"
-;			set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
-;		endif
-;		
-;		set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
-;		if not($binaryName$ = "")
-;			if FileExists($binaryName$)
-;				set $VerInfoMap$ = getFileInfoMap($binaryName$)
-;				set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
-;				set $Language$ = LangCodeByHex($langCodeHex$)
-;			endif
-;		endif
-;		sub_create_hash4
-;	endif
-;endif
-;
-;[sub_getswdetails4_64]
-;setloglevel = $Midloglevel$
-;
-;; use EscapeString to handle keys with quotation
-;set $aktkey$ = EscapeString:%aktkey%
-;if not ($aktkey$ = "")
-;	set $installSize$ = "-1"
-;	set $binaryName$ = ""
-;	set $Language$ = ""
-;	set $licenseKey$ = ""
-;	Set $displayVersion$ = ""
-;	Set $version$ = ""
-;	set $winSoftwareId$ = $aktkey$
-;	if not ($winSoftwareId$ = "") 
-;		set $Language$ = ""
-;		set $binaryName$ = ""
-;		set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
-;		set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
-;		set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
-;		if $usekeyfinder$ = "on"
-;			set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
-;		endif
-;		
-;		set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
-;		if not($binaryName$ = "") 
-;			if FileExists($binaryName$)
-;				set $VerInfoMap$ = getFileInfoMap($binaryName$)
-;				set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
-;				set $Language$ = LangCodeByHex($langCodeHex$)
-;			endif
-;		endif
-;		sub_create_hash4
-;	endif
-;endif
-;
-;[sub_get_windows_info]
-;DefVar $CurrentVersionProductName$
-;DefVar $CurrentVersionCSDVersion$
-;DefVar $CurrentVersionProductId$
-;DefVar $CurrentVersionCurrentVersion$
-;DefVar $CurrentVersionReleaseId$
-;DefStringList $localeMap$
-;
-;set $installSize$ = "-1"
-;set $binaryName$ = ""
-;
-;; i.e. Windows 7 professional N
-;Set $CurrentVersionProductName$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductName")
-;; i.e. ServicePack 1
-;Set $CurrentVersionCSDVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CSDVersion")
-;; i.e. 00376-165-5790905-86892
-;; http://wiki.lunarsoft.net/wiki/Product_IDs
-;; xxxxx-yyy-zzzzzzz-zzzzz
-;; xxxxx: microsoft product code (platform, build, language, and version of windows)
-;; yyy:   channel id (OEM, Volume License, Retail, bundle/Not For Resale)
-;Set $CurrentVersionProductId$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductId")
-;; i.e. 6.1
-;Set $CurrentVersionCurrentVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CurrentVersion")
-;
-;Set $winSoftwareId$  = "ms_windows_" + takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
-;;Set $displayVersion$ = $CurrentVersionCurrentVersion$
-;; This is 6.3 on win10 - so we use the real version from api with manifest
-;Set $displayVersion$ = GetMsVersionInfo
-;Set $displayName$    = $CurrentVersionProductName$
-;if not ($CurrentVersionCSDVersion$ = "")
-;	Set $displayName$ = $displayName$ + " (" + $CurrentVersionCSDVersion$ + ")"
-;endif
-;if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","10.0")
-;	Set $CurrentVersionReleaseId$ = GetRegistryStringValueSysNative('[HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion] ReleaseID')
-;	if not ($CurrentVersionReleaseId$ = "")
-;		Set $displayName$ = $displayName$ + " (" + $CurrentVersionReleaseId$ + ")"
-;	endif
-;endif
-;Set $uninstallString$ = ""
-;Set $name$ = $displayName$
-;;Set $version$ = $CurrentVersionCurrentVersion$
-;; This is 6.3 on win10 - so we use the real version from api with manifest
-;Set $version$ = GetMsVersionInfo
-;Set $subversion$ = takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
-;if $usekeyfinder$ = "on"
-;	set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
-;else
-;	set $licenseKey$ = ""
-;endif
-;
-;Set $localeMap$ = getLocaleInfoMap
-;Set $Language$ = getValue("system_default_lang_region",$localeMap$)
-;
-;if (GetSystemType = "64 Bit System")
-;	Set $architecture$ = "x64"
-;else
-;	Set $architecture$ = "x86"
-;endif
-;
-;[sub_get_nt6_hotfix_info]
-;setloglevel = $Highloglevel$
-;
-;Set $displayVersion$ = ""
-;Set $uninstallString$ = ""
-;Set $version$ = ""
-;Set $subversion$ = ""
-;set $licenseKey$ = ""
-;set $installSize$ = "-1"
-;set $binaryName$ = ""
-;set $Language$ = LangCodeByHex("0x0000")
-;
-;markErrorNumber
-;set $resultlist$ = shellCall("wmic path Win32_QuickFixEngineering get hotfixid")
-;set $resultlist$ = shellCall("wmic qfe get hotfixid")
-;if errorsOccurredSinceMark > 0
-;	LogError "Could not get hotfixes via wmic qfe - fatal"
-;	set $isfatal$ = "true"
-;	set $fatalmessage$ = "no hotfix"
-;endif
-;if not(getlastexitcode = "0")
-;	LogError "Could not get hotfixes via wmic qfe - fatal"
-;	set $isfatal$ = "true"
-;	set $fatalmessage$ = "no hotfix"
-;endif
-;if contains(takestring(0,$resultlist$),"Instan")
-;	LogError "Could not get hotfixes via wmic qfe - fatal"
-;	set $isfatal$ = "true"
-;	set $fatalmessage$ = "no hotfix"
-;endif
-;if $isfatal$ = "true"
-;	if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.12.0.16")
-;		comment "Retry with powershell ...."
-;		set $resultlist$ = powershellCall("Get-HotFix | select -expand HotFixID")
-;		if not(getlastexitcode = "0")
-;			LogError "Could not get hotfixes via wmic qfe - fatal"
-;			set $isfatal$ = "true"
-;			set $fatalmessage$ = "no hotfix"
-;		else
-;			set $isfatal$ = "false"
-;		endif
-;	endif
-;endif
-;
-;set $resultlist$ = getListContaining($resultlist$, "KB")
-;for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
-;
-;[sub_process_nt6_hotfix_info]
-;setloglevel = $Midloglevel$
-;
-;Set $winSoftwareId$  = trim("%akthotfix%")
-;Set $displayName$    = trim("%akthotfix%")
-;Set $name$ = $displayName$
-;if (GetSystemType = "64 Bit System")
-;	Set $architecture$ = "x64"
-;else
-;	Set $architecture$ = "x86"
-;endif
-;sub_create_hash4
-
-		
-;[sub_create_hash4]
-;if $displayName$ = ""
-;	set $name$ = $winSoftwareId$
-;else
-;	set $name$ = $displayName$
-;endif
-;if $version$ = ""
-;	set $version$ = $displayVersion$
-;endif
-;
-;setloglevel = $Highloglevel$
-;
-;
-;comment "Product: "+$name$+" Version: "+$version$+" Archticture: "+$architecture$
-;;comment ""
-;;comment "next product is...."
-;;comment "$name$  ----------------= "+$name$
-;;comment "$version$ --------------= "+$version$
-;;comment "$subVersion$ -----------= "+$subVersion$
-;;comment "$language$ -------------= "+$language$
-;;comment "$architecture$ ---------= "+$architecture$
-;;comment "$windowsSoftwareId$ ----= "+$winSoftwareId$
-;;comment "$windowsDisplayName$ ---= "+$displayName$
-;;comment "$windowsDisplayVersion$ = "+$displayVersion$
-;;comment "$uninstallString$ ------= "+$uninstallString$
-;;comment "$installSize$ ----------= "+$installSize$
-;;comment "$displayVersion$ -------= "+$displayVersion$
-;;comment "$binaryName$ -----------= "+$binaryName$
-;;comment "$licenseKey$ -----------= "+$licenseKey$
-;
-;setloglevel = $Lowloglevel$
-;
-;
-;; trim entries to DB field length
-;set $name$ = strPart($name$,"1","99")
-;set $version$ = strPart($version$,"1","99")
-;set $subversion$ = strPart($subversion$,"1","99")
-;set $Language$ = strPart($Language$,"1","9")
-;set $architecture$ = strPart($architecture$,"1","3")
-;set $winSoftwareId$ = strPart($winSoftwareId$,"1","99")
-;set $displayName$ = strPart($displayName$,"1","99")
-;set $displayVersion$ = strPart($displayVersion$,"1","99")
-;set $clientId$ = strPart($clientId$,"1","254")
-;set $uninstallString$ = strPart($uninstallString$,"1","199")
-;set $binaryName$ = strPart($binaryName$,"1","99")
-;set $licenseKey$ = strPart($licenseKey$,"1","254")
-;
-;; make json objects
-;set $softwareObject$ = "{}"
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"type","AuditSoftware")
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"name",$name$)
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"version",$version$)
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"subVersion",$subVersion$)
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"language",$language$)
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"architecture",$architecture$)
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsSoftwareId",$winSoftwareId$)
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayName",$displayName$)
-;set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayVersion",$displayVersion$)
-;set $softwareObject$ = jsonAsObjectSetValueByKey($softwareObject$,"installSize",$installSize$)
-;set $softwareObjectList$ = addtolist($softwareObjectList$,$softwareObject$)
-;
-;set $softwareOnClientObject$ = "{}"
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"type","AuditSoftwareOnClient")
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"name",$name$)
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"version",$version$)
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"subVersion",$subVersion$)
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"language",$language$)
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"architecture",$architecture$)
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"clientId",$clientId$)
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"uninstallString",$uninstallString$)
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"binaryName",$binaryName$)
-;set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"licenseKey",$licenseKey$)
-;set $softwareOnClientObjectList$ = addtolist($softwareOnClientObjectList$,$softwareOnClientObject$)
-;
-;;;;;;;;; Linux start
-;
-;[sub_init_vars]
-;set $installSize$ = "-1"
-;set $architecture$ = ""
-;set $version$ = ""
-;set $displayName$ = ""
-;set $displayVersion$ = ""
-;set $binaryName$ = ""
-;set $Language$ = ""
-;set $subVersion$ = ""
-;set $uninstallString$ = ""
-;set $binaryName$ = ""
-;set $licenseKey$ = ""
-;
-
-;[sub_getswdetails4_os]
-;sub_init_vars
-;setloglevel=$Midloglevel$
-;set $displayName$ = $distroOS$+" : "+$distroName$
-;if not ($displayName$ = '')
-;	set $displayVersion$ = $distRelease$
-;	set $tmp$ = $distroarch$
-;	if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
-;		set $architecture$ = "x86"
-;	endif
-;	if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
-;		set $architecture$ = "x64"
-;	endif
-;	if ($tmp$ = "noarch") or ($tmp$ = "all") 
-;		set $architecture$ = ""
-;	endif
-;	set $winSoftwareId$ = $displayName$
-;	sub_create_hash4
-;endif
 ;
 [shellInAnIcon_deb]
 # dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${STATUS}\n'
@@ -659,164 +360,6 @@ zypper se -i -s
 [shellInAnIcon_redhat]
 yum list installed
 
-
-;[sub_getswdetails4_deb]
-;setloglevel=$Midloglevel$
-;if not ("%aktline%" = "")
-;	sub_init_vars
-;	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
-;	set $displayName$ = takeString(0,$resultlist$)
-;	if not ($displayName$ = '')
-;		set $displayVersion$ = takeString(1,$resultlist$)
-;		set $installSize$ = takeString(3,$resultlist$)
-;		if not(isNumber($installSize$))
-;			set $installSize$ = "-1"
-;		endif
-;		set $tmp$ = takeString(2,$resultlist$)
-;		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
-;			set $architecture$ = "x86"
-;		endif
-;		if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
-;			set $architecture$ = "x64"
-;		endif
-;		if ($tmp$ = "noarch") or ($tmp$ = "all") 
-;			set $architecture$ = ""
-;		endif
-;		set $winSoftwareId$ = $displayName$
-;			
-;		sub_create_hash4
-;	endif
-;endif
-;
-;[sub_getswdetails4_suse]
-;setloglevel=$Midloglevel$
-;if not ("%aktline%" = "")
-;	sub_init_vars
-;	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
-;	if takeString(0,$resultlist$) = 'i'
-;		set $displayName$ = takeString(2,$resultlist$)
-;		set $displayVersion$ = takeString(6,$resultlist$)
-;		set $tmp$ = takeString(8,$resultlist$)
-;		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
-;			set $architecture$ = "x86"
-;		endif
-;		if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
-;			set $architecture$ = "x64"
-;		endif
-;		if ($tmp$ = "noarch") or ($tmp$ = "all") 
-;			set $architecture$ = ""
-;		endif
-;		set $winSoftwareId$ = $displayName$
-;			
-;		sub_create_hash4
-;	endif
-;endif
-;
-;[sub_getswdetails4_redhat]
-;setloglevel=$Midloglevel$
-;if not ("%aktline%" = "")
-;	sub_init_vars
-;	set $resultlist$ = splitStringOnWhiteSpace("%aktline%")
-;	set $displayName$ = takeString(0,$resultlist$)
-;	set $resultlist2$  = splitString($displayName$, ".")
-;	set $displayName$ = takeString(0,$resultlist2$)
-;	set $tmp$ = takeString(1,$resultlist2$)
-;	if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
-;		set $architecture$ = "x86"
-;	endif
-;	if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
-;		set $architecture$ = "x64"
-;	endif
-;	if ($tmp$ = "noarch") or ($tmp$ = "all") 
-;		set $architecture$ = ""
-;	endif
-;	set $displayVersion$ = takeString(1,$resultlist$)
-;	set $winSoftwareId$ = $displayName$
-;		
-;	sub_create_hash4
-;endif
-;;;;;;;; Linux end
-;; #####  macos start #############################################
-;
-;[shellInAnIcon_macos1]
-;
-;[sub_getswdetails4_macos1]
-;setloglevel=$Midloglevel$
-;if not ("%aktline%" = "")
-;	sub_init_vars
-;	set $resultlist$ = shellCall('pkgutil --pkg-info %aktline%')
-;	set $displayName$ = getValueBySeparator('package-id',':',$resultlist$)
-;	if not ($displayName$ = '')
-;		set $displayVersion$ = getValueBySeparator('version',':',$resultlist$)
-;		set $winSoftwareId$ = "%aktline%"
-;		set $architecture$ = "x64"
-;		sub_create_hash4
-;	endif
-;endif
-;
-;[sub_getswdetails4_macos2]
-;setloglevel=$Midloglevel$
-;if not ("%aktline%" = "")
-;	sub_init_vars
-;	;set $resultlist$ = shellCall('pkgutil --pkg-info %aktline%')
-;	set $displayName$ = ExtractFileName("%aktline%")
-;	if not ($displayName$ = '')
-;		set $winSoftwareId$ = $displayName$
-;		set $architecture$ = "x64"
-;		sub_create_hash4
-;	endif
-;endif
-;
-;[sub_getswdetails4_macos3]
-;setloglevel=$Midloglevel$
-;if not ("%aktline%" = "")
-;	sub_init_vars
-;	set $resultlist$ = loadtextfile('%aktline%')
-;	set $index$ = getIndexFromListByContaining($resultlist$,"<key>CFBundleName</key>")
-;	if isNumber($index$)
-;		set $index$ = calculate($index$+" + 1")
-;		set $tmp$ = takestring($index$,$resultlist$)
-;		set $tmp$ = stringReplace($tmp$, "<string>", "")
-;		set $tmp$ = stringReplace($tmp$, "</string>", "")
-;		set $displayName$ = trim($tmp$)
-;	endif
-;	set $index$ = getIndexFromListByContaining($resultlist$,"<key>CFBundleShortVersionString</key>")
-;	if isNumber($index$)
-;		set $index$ = calculate($index$+" + 1")
-;		set $tmp$ = takestring($index$,$resultlist$)
-;		set $tmp$ = stringReplace($tmp$, "<string>", "")
-;		set $tmp$ = stringReplace($tmp$, "</string>", "")
-;		set $version$ = trim($tmp$)
-;	endif
-;	set $index$ = getIndexFromListByContaining($resultlist$,"<key>CFBundleIdentifier</key>")
-;	if isNumber($index$)
-;		set $index$ = calculate($index$+" + 1")
-;		set $tmp$ = takestring($index$,$resultlist$)
-;		set $tmp$ = stringReplace($tmp$, "<string>", "")
-;		set $tmp$ = stringReplace($tmp$, "</string>", "")
-;		set $winSoftwareId$ = trim($tmp$)
-;	endif
-;	set $architecture$ = "x64"
-;	sub_create_hash4
-;endif
-;
-;[sub_getswdetails4_macos4]
-;setloglevel=$Midloglevel$
-;if not ("%aktline%" = "")
-;	sub_init_vars
-;	set $resultlist$ = splitstringOnWhitespace("%aktline%")
-;	set $displayName$ = takeString(0,$resultlist$)
-;	set $version$ = takeString(1,$resultlist$)
-;	if not ($displayName$ = '')
-;		set $winSoftwareId$ = "(Homebrew) "+$displayName$
-;		set $architecture$ = "x64"
-;		sub_create_hash4
-;	endif
-;endif
-;
-;
-;
-;; #####  macos end #############################################
 [Files_del_temp]
 delete "%opsiTmpDir%\swaudit_keys.ini"
 
@@ -825,7 +368,7 @@ delete "%opsiTmpDir%\swaudit_keys.ini"
 "params": [
           "$clientId$"
           ]
-          
+
 
 [opsiservicecall_auditSoftware_createObjects]
 "method": "auditSoftware_createObjects"

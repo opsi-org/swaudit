@@ -86,8 +86,19 @@ DefFunc init_vars() : void
 	set $displayVersion$ = ""
 	set $binaryName$ = ""
 	set $Language$ = ""
-	set $subVersion$ = ""
 	set $uninstallString$ = ""
 	set $binaryName$ = ""
 	set $licenseKey$ = ""
+	Switch $OS$
+		Case "Linux"
+			set $subversion$ = "Lin:"
+		EndCase
+		Case "macos"
+			set $subversion$ = "Mac:"
+		EndCase
+		DefaultCase
+			set $subversion$ = ""
+		EndCase
+	EndSwitch
+
 EndFunc
