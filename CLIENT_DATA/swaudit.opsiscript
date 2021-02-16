@@ -242,8 +242,12 @@ if $readfromfile$ = "off"
 		;for %aktline% in $outLines$ do getswdetails4_macos2("%aktline%")
 		;set $outLines$ = shellCall("ls -1d /applications/utilities/*.app")
 		;for %aktline% in $outLines$ do getswdetails4_macos2("%aktline%")
+		
 		message "collecting products 2..."
-		set $outLines$ = listFiles("/Applications","Info.plist","True")
+		set $outLines$ = shellCall('ls -1 /Applications/*/Info.plist')
+		; this gives 90% binary files:
+		;set $outLines$ = listFiles("/Applications","Info.plist","True")
+		message "collecting products 3..."
 		for %aktline% in $outLines$ do getswdetails4_macos3("%aktline%")
 		if fileExists("/usr/local/bin/brew")
 			message "collecting products 3..."

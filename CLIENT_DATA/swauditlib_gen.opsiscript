@@ -61,7 +61,12 @@ DefFunc create_hash4() : void
 	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayName",$displayName$)
 	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayVersion",$displayVersion$)
 	set $softwareObject$ = jsonAsObjectSetValueByKey($softwareObject$,"installSize",$installSize$)
-	set $softwareObjectList$ = addtolist($softwareObjectList$,$softwareObject$)
+	if jsonIsObject($softwareObject$)
+		set $softwareObjectList$ = addtolist($softwareObjectList$,$softwareObject$)
+	else
+		Logwarning "Could not add : "+$softwareObject$
+	endif
+	
 	
 	set $softwareOnClientObject$ = "{}"
 	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"type","AuditSoftwareOnClient")
@@ -74,7 +79,11 @@ DefFunc create_hash4() : void
 	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"uninstallString",$uninstallString$)
 	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"binaryName",$binaryName$)
 	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"licenseKey",$licenseKey$)
-	set $softwareOnClientObjectList$ = addtolist($softwareOnClientObjectList$,$softwareOnClientObject$)
+	if jsonIsObject($softwareOnClientObject$)
+		set $softwareOnClientObjectList$ = addtolist($softwareOnClientObjectList$,$softwareOnClientObject$)
+	else
+		Logwarning "Could not add : "+$softwareOnClientObject$
+	endif
 EndFunc
 
 DefFunc init_vars() : void
