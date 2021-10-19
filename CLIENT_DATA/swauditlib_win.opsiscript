@@ -100,6 +100,9 @@ DefFunc get_windows_info() : void
 	endif
 	if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","10.0")
 		Set $CurrentVersionReleaseId$ = GetRegistryStringValueSysNative('[HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion] ReleaseID')
+		if RegVarExists('HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'Displayversion')
+			Set $CurrentVersionReleaseId$ = getRegistryValue ('HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'Displayversion')
+		endif
 		if not ($CurrentVersionReleaseId$ = "")
 			Set $displayName$ = $displayName$ + " (" + $CurrentVersionReleaseId$ + ")"
 		endif

@@ -1,4 +1,10 @@
 [Changelog]
+swaudit (4.2.0.0-1) stable; urgency=low
+
+  * Find correct Win10 Release IDs (e.g. 20H2) ; fixes #4692
+
+-- detlef oertel <d.oertel@uib.de>  Tue, 19 Oct 2021 15:00:00 +0100
+
 swaudit (4.1.0.5-1) stable; urgency=low
 
   * avoid invalid json objects
