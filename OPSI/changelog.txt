@@ -1,4 +1,13 @@
 [Changelog]
+swaudit (4.2.0.1-1) stable; urgency=low
+
+  * give "windows 11" as name if it is windows 11
+  *  opsi-script >= 4.12.4.35 needed (for getMsVersionName)
+  * default for property win10subversion is now: win10osbuild
+  * code cleanup
+
+-- detlef oertel <d.oertel@uib.de>  Tue, 20 May 2023 15:00:00 +0100
+
 swaudit (4.2.0.0-1) stable; urgency=low
 
   * Find correct Win10 Release IDs (e.g. 20H2) ; fixes #4692

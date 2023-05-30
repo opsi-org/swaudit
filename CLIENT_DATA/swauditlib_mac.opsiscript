@@ -15,7 +15,7 @@ DefFunc getswdetails4_macos1($aktkey$ : string) : void
 		endif
 	endif
 Endfunc
-	
+
 DefFunc getswdetails4_macos2($aktkey$ : string) : void
 	setloglevel=$Midloglevel$
 	if not ($aktkey$ = "")
@@ -29,7 +29,7 @@ DefFunc getswdetails4_macos2($aktkey$ : string) : void
 		endif
 	endif
 Endfunc
-	
+
 DefFunc getswdetails4_macos3($aktkey$ : string) : void
 	DefStringlist $outlist$
 	DefVar $outstr$
@@ -69,7 +69,7 @@ DefFunc getswdetails4_macos3($aktkey$ : string) : void
 		endif
 	endif
 Endfunc
-	
+
 DefFunc getswdetails4_macos4($aktkey$ : string) : void
 	setloglevel=$Midloglevel$
 	if not ($aktkey$ = "")

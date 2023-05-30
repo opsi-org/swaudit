@@ -7,8 +7,8 @@ type: localboot
 id: swaudit
 name: Client Software inventory (Windows / Linux / macos)
 description: Windows: uninstall informations from registry; Linux: form package system
-advice: opsi-script >= 4.12.1.5 needed
-version: 4.2.0.0
+advice: opsi-script >= 4.12.4.35 needed
+version: 4.2.0.1
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -26,7 +26,7 @@ name: usefilebuffer
 multivalue: False
 editable: False
 description: Save results to file and reread it
-values: ["off", "on"]
+values: ["off","on"]
 default: ["off"]
 
 [ProductProperty]
@@ -35,7 +35,7 @@ name: usekeyfinder
 multivalue: False
 editable: False
 description: Try to find license keys
-values: ["off", "on"]
+values: ["off","on"]
 default: ["off"]
 
 [ProductProperty]
@@ -44,7 +44,7 @@ name: readfromfile
 multivalue: False
 editable: False
 description: ONLY DEBUG - do not use if you are not shure what you doing! (Do not make a audit but read values from c:\opsi.org\tmp and send them)
-values: ["off", "on"]
+values: ["off","on"]
 default: ["off"]
 
 [ProductProperty]
@@ -53,7 +53,7 @@ name: maxloglevel
 multivalue: False
 editable: False
 description: Reduce log file size by setting lower max log level
-values: ["3", "4", "5", "6", "7", "8"]
+values: ["3","4","5","6","7","8"]
 default: ["5"]
 
 [ProductProperty]
@@ -67,7 +67,6 @@ type: unicode
 name: win10subversion
 multivalue: False
 editable: False
-description: Windows 10 OS Build (https://docs.microsoft.com/en-us/windows/windows-10/release-information)  on Win10 , Win 2016 , Win2019 or begin of HKLM\Software\Mscrosoft\Windows NT\CurrentVersion] ProductId" for example 00330-71317
-values: ["hklmproductid", "win10osbuild"]
-default: ["hklmproductid"]
-
+description: Windows 10 OS Build (https://docs.microsoft.com/en-us/windows/windows-10/release-information)  on Win10, Win 2016, Win2019 or begin of HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductId" for example 00330-71317
+values: ["hklmproductid","win10osbuild"]
+default: ["win10osbuild"]

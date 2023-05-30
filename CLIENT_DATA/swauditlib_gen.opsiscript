@@ -2,7 +2,7 @@
 encoding=utf8
 
 DefFunc create_hash4() : void
-
+	
 	if $displayName$ = ""
 		set $name$ = $winSoftwareId$
 	else
@@ -87,7 +87,7 @@ DefFunc create_hash4() : void
 EndFunc
 
 DefFunc init_vars() : void
-
+	
 	set $installSize$ = "-1"
 	set $architecture$ = ""
 	set $version$ = ""
@@ -109,5 +109,5 @@ DefFunc init_vars() : void
 			set $subversion$ = ""
 		EndCase
 	EndSwitch
-
+	
 EndFunc

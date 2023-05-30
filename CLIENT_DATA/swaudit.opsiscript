@@ -370,28 +370,28 @@ delete "%opsiTmpDir%\swaudit_keys.ini"
 [opsiservicecall_auditSoftwareOnClient_setObsolete]
 "method": "auditSoftwareOnClient_setObsolete"
 "params": [
-          "$clientId$"
-          ]
+			"$clientId$"
+			]
 
 
 [opsiservicecall_auditSoftware_createObjects]
 "method": "auditSoftware_createObjects"
 "params": [
-           '$softwareObjectArray$'
-          ]
+			'$softwareObjectArray$'
+			]
 
 
 [opsiservicecall_auditSoftwareOnClient_createObjects]
 "method": "auditSoftwareOnClient_createObjects"
 "params": [
-           '$softwareOnClientObjectArray$'
-          ]
+			'$softwareOnClientObjectArray$'
+			]
 
 [opsiservicecall_create_aktObject]
 "method": "$serviceMethod$"
 "params": [
-           '[%aktObject%]'
-          ]
+			'[%aktObject%]'
+			]
 
 [Files_del_old]
 delete -f "%opsiTmpDir%\auditsoftware_%PCName%.json"

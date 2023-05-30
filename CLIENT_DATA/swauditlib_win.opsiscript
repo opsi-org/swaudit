@@ -12,7 +12,7 @@ DefFunc getswdetails4_32($aktkey$ : string) : void
 		Set $displayVersion$ = ""
 		Set $version$ = ""
 		set $winSoftwareId$ = $aktkey$
-		if not ($winSoftwareId$ = "") 
+		if not ($winSoftwareId$ = "")
 			set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
 			set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
 			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
@@ -33,7 +33,7 @@ DefFunc getswdetails4_32($aktkey$ : string) : void
 		endif
 	endif
 Endfunc
-	
+
 DefFunc getswdetails4_64($aktkey$ : string) : void
 	if not ($aktkey$ = "")
 		set $installSize$ = "-1"
@@ -43,7 +43,7 @@ DefFunc getswdetails4_64($aktkey$ : string) : void
 		Set $displayVersion$ = ""
 		Set $version$ = ""
 		set $winSoftwareId$ = $aktkey$
-		if not ($winSoftwareId$ = "") 
+		if not ($winSoftwareId$ = "")
 			set $Language$ = ""
 			set $binaryName$ = ""
 			set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
@@ -54,7 +54,7 @@ DefFunc getswdetails4_64($aktkey$ : string) : void
 			endif
 			
 			set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
-			if not($binaryName$ = "") 
+			if not($binaryName$ = "")
 				if FileExists($binaryName$)
 					set $VerInfoMap$ = getFileInfoMap($binaryName$)
 					set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
@@ -65,7 +65,7 @@ DefFunc getswdetails4_64($aktkey$ : string) : void
 		endif
 	endif
 Endfunc
-	
+
 DefFunc get_windows_info() : void
 	DefVar $CurrentVersionProductName$
 	DefVar $CurrentVersionCSDVersion$
@@ -98,6 +98,11 @@ DefFunc get_windows_info() : void
 	if not ($CurrentVersionCSDVersion$ = "")
 		Set $displayName$ = $displayName$ + " (" + $CurrentVersionCSDVersion$ + ")"
 	endif
+	; write Windows 11 in case of Windows 11
+	if CompareDotSeparatedNumbers(GetMsVersionName,"=","11.0")
+		Set $displayName$ = stringReplace($displayName$, "Windows 10", "Windows 11")
+	endif
+	; add realease id
 	if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","10.0")
 		Set $CurrentVersionReleaseId$ = GetRegistryStringValueSysNative('[HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion] ReleaseID')
 		if RegVarExists('HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'Displayversion')
@@ -120,7 +125,7 @@ DefFunc get_windows_info() : void
 		Set $UBR$ = getRegistryValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR")
 		Set $subversion$ = $CurrentBuild$ + "." + $UBR$
 	endif
-
+	
 	if $usekeyfinder$ = "on"
 		set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
 	else
@@ -137,7 +142,7 @@ DefFunc get_windows_info() : void
 	endif
 	create_hash4()
 Endfunc
-	
+
 DefFunc get_nt6_hotfix_info() : void
 	setloglevel = $Highloglevel$
 	
@@ -169,16 +174,14 @@ DefFunc get_nt6_hotfix_info() : void
 		set $fatalmessage$ = "no hotfix"
 	endif
 	if $isfatal$ = "true"
-		if CompareDotSeparatedNumbers("%WinstVersion%",">=","4.12.0.16")
-			comment "Retry with powershell ...."
-			set $resultlist$ = powershellCall("Get-HotFix | select -expand HotFixID")
-			if not(getlastexitcode = "0")
-				LogError "Could not get hotfixes via wmic qfe - fatal"
-				set $isfatal$ = "true"
-				set $fatalmessage$ = "no hotfix"
-			else
-				set $isfatal$ = "false"
-			endif
+		comment "Retry with powershell ...."
+		set $resultlist$ = powershellCall("Get-HotFix | select -expand HotFixID")
+		if not(getlastexitcode = "0")
+			LogError "Could not get hotfixes via wmic qfe - fatal"
+			set $isfatal$ = "true"
+			set $fatalmessage$ = "no hotfix"
+		else
+			set $isfatal$ = "false"
 		endif
 	endif
 	
@@ -198,6 +201,6 @@ DefFunc get_nt6_hotfix_info() : void
 	endif
 	create_hash4()
 Endfunc
-	
-	
+
+
 	

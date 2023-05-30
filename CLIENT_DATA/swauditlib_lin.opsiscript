@@ -10,18 +10,18 @@ DefFunc getswdetails4_os() : void
 		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
 			set $architecture$ = "x86"
 		endif
-		if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+		if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
 			set $architecture$ = "x64"
 		endif
-		if ($tmp$ = "noarch") or ($tmp$ = "all") 
+		if ($tmp$ = "noarch") or ($tmp$ = "all")
 			set $architecture$ = ""
 		endif
 		set $winSoftwareId$ = $displayName$
 		create_hash4()
 	endif
 Endfunc
-	
-	
+
+
 DefFunc getswdetails4_deb($aktkey$ : string) : void
 	DefVar $listcount$
 	setloglevel=$Midloglevel$
@@ -44,10 +44,10 @@ DefFunc getswdetails4_deb($aktkey$ : string) : void
 					if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
 						set $architecture$ = "x86"
 					endif
-					if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+					if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
 						set $architecture$ = "x64"
 					endif
-					if ($tmp$ = "noarch") or ($tmp$ = "all") 
+					if ($tmp$ = "noarch") or ($tmp$ = "all")
 						set $architecture$ = ""
 					endif
 					if $listcount$ int>= "4"
@@ -59,12 +59,12 @@ DefFunc getswdetails4_deb($aktkey$ : string) : void
 				endif
 			endif
 			set $winSoftwareId$ = $displayName$
-				
+			
 			create_hash4()
 		endif
 	endif
 Endfunc
-	
+
 DefFunc getswdetails4_suse($aktkey$ : string) : void
 	setloglevel=$Midloglevel$
 	if not ($aktkey$ = "")
@@ -77,19 +77,19 @@ DefFunc getswdetails4_suse($aktkey$ : string) : void
 			if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
 				set $architecture$ = "x86"
 			endif
-			if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+			if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
 				set $architecture$ = "x64"
 			endif
-			if ($tmp$ = "noarch") or ($tmp$ = "all") 
+			if ($tmp$ = "noarch") or ($tmp$ = "all")
 				set $architecture$ = ""
 			endif
 			set $winSoftwareId$ = $displayName$
-				
+			
 			create_hash4()
 		endif
 	endif
 Endfunc
-	
+
 DefFunc getswdetails4_redhat($aktkey$ : string) : void
 	setloglevel=$Midloglevel$
 	if not ($aktkey$ = "")
@@ -102,15 +102,15 @@ DefFunc getswdetails4_redhat($aktkey$ : string) : void
 		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
 			set $architecture$ = "x86"
 		endif
-		if ($tmp$ = "amd64") or ($tmp$ = "x86_64") 
+		if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
 			set $architecture$ = "x64"
 		endif
-		if ($tmp$ = "noarch") or ($tmp$ = "all") 
+		if ($tmp$ = "noarch") or ($tmp$ = "all")
 			set $architecture$ = ""
 		endif
 		set $displayVersion$ = takeString(1,$resultlist$)
 		set $winSoftwareId$ = $displayName$
-			
+		
 		create_hash4()
 	endif
 Endfunc
