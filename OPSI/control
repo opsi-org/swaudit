@@ -1,5 +1,5 @@
 [Package]
-version: 1
+version: 2
 depends: 
 
 [Product]
@@ -31,6 +31,15 @@ default: ["off"]
 
 [ProductProperty]
 type: unicode
+name: windowmode
+multivalue: False
+editable: False
+description: Mode of the opsi-script window
+values: ["maximized","windowed","minimized"]
+default: ["maximized"]
+
+[ProductProperty]
+type: unicode
 name: usekeyfinder
 multivalue: False
 editable: False
@@ -43,7 +52,7 @@ type: unicode
 name: readfromfile
 multivalue: False
 editable: False
-description: ONLY DEBUG - do not use if you are not shure what you doing! (Do not make a audit but read values from c:\opsi.org\tmp and send them)
+description: ONLY DEBUG - do not use if you are not sure what you doing! (Do not make a audit but read values from c:\opsi.org\tmp and send them)
 values: ["off","on"]
 default: ["off"]
 

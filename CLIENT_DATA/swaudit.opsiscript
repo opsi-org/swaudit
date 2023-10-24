@@ -5,8 +5,22 @@
 
 [actions]
 encoding=utf8
-requiredWinstVersion >= "4.12.1.5"
+requiredOpsiscriptVersion >= "4.12.4.37"
 ScriptErrorMessages=false
+
+DefVar $windowmode$
+set $windowmode$ = GetProductProperty("windowmode", "maximized")
+switch $windowmode$
+	case "maximized"
+		MaximizeWinst
+	endcase
+	case "windowed"
+		NormalizeWinst
+	endcase
+	case "minimized"
+		IconizeWinst
+	endcase
+endswitch
 
 DefVar $Highloglevel$
 DefVar $Midloglevel$
