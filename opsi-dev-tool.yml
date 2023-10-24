@@ -1,0 +1,6 @@
+jenkins-test:
+  ACTIONREQUEST: setup,setup
+  PRODUCTS: swaudit,swaudit
+  PROPERTIES: {}
+  SYSTEMS: win10-x64-21h1,debian11,macos-14
+  SNAPSHOT: patched
