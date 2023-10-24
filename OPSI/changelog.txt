@@ -1,7 +1,7 @@
 [Changelog]
 swaudit (4.2.0.1-2) stable; urgency=low
 
-  * Added "windowsmode" ProductProperty to control behaviour of opsi-script window
+  * Added "windowsmode" ProductProperty to control behavior of opsi-script window
 
 -- Nils Doerrer <n.doerrer@uib.de>  Tue, 24 Oct 2023 12:00:00 +0100
 
