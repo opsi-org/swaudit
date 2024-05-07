@@ -203,4 +203,36 @@ DefFunc get_nt6_hotfix_info() : void
 Endfunc
 
 
+DefFunc getAppxDetails($aktname$ : string) : void
+	DefStringlist $appxDetails$
+	
+	setloglevel = $Midloglevel$
+	if not ($aktname$ = "")
+		set $installSize$ = "-1"
+		set $binaryName$ = ""
+		set $Language$ = ""
+		set $licenseKey$ = ""
+		Set $displayVersion$ = ""
+		Set $version$ = ""
+		set $architecture$ = ""
+		set $subversion$ = ""
+		set $Language$ = ""
+		set $winSoftwareId$ = $aktname$
+		if not ($winSoftwareId$ = "")
+			set $appxDetails$ = powershellCall('Get-AppxPackage -AllUsers  | Where-Object {$_.PackageFullName -eq "'+$aktname$+'""}')
+			set $Language$ = ""
+			set $binaryName$ = ""
+			set $displayVersion$ = getValueBySeparator("Version",":",$appxDetails$)
+			set $displayName$ = getValueBySeparator("Name",":",$appxDetails$)
+			set $architecture$ = lower(getValueBySeparator("Architecture",":",$appxDetails$))
+			if $architecture$ = "neutral"
+				set $architecture$ = ""
+			endif
+			set $uninstallString$ = ""
+			create_hash4()
+		endif
+	endif
+Endfunc
+
+
 	

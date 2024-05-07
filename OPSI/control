@@ -1,14 +1,14 @@
 [Package]
-version: 2
+version: 1
 depends: 
 
 [Product]
 type: localboot
 id: swaudit
 name: Client Software inventory (Windows / Linux / macos)
-description: Windows: uninstall informations from registry; Linux: form package system
+description: Windows: uninstall information from registry / powershell; Linux: from package system
 advice: opsi-script >= 4.12.4.35 needed
-version: 4.2.0.1
+version: 4.3.0.0
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -35,7 +35,7 @@ name: windowmode
 multivalue: False
 editable: False
 description: Mode of the opsi-script window
-values: ["maximized","windowed","minimized"]
+values: ["maximized","minimized","windowed"]
 default: ["maximized"]
 
 [ProductProperty]

@@ -1,4 +1,10 @@
 [Changelog]
+swaudit (4.3.0.0-1)
+
+  * Added appx and msix packages via powershell
+
+-- detlef oertel <d.oertel@uib.de> 2024-05-07
+
 swaudit (4.2.0.1-2) stable; urgency=low
 
   * Added "windowsmode" ProductProperty to control behavior of opsi-script window

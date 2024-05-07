@@ -72,6 +72,7 @@ DefStringList $linuxInfo$
 DefStringList $outLines$
 
 DefStringlist $uninstKeys$
+DefStringlist $appxFullNames$
 DefStringlist $resultlist$
 DefStringlist $resultlist2$
 DefStringList $VerInfoMap$
@@ -202,7 +203,12 @@ if $readfromfile$ = "off"
 		set $Language$ = ""
 		for %aktkey% in $uninstKeys$ do getswdetails4_32("%aktkey%")
 		setloglevel = $Highloglevel$
-		
+
+		message "collecting Appx / Msix product details ..."
+		set $appxFullNames$ = powershellCall("Get-AppxPackage -AllUsers  | select -expandProperty PackageFullName")
+		for %aktName% in $appxFullNames$ do getAppxDetails("%aktName%")
+		setloglevel = $Highloglevel$
+		 
 		message "collecting os details ..."
 		get_windows_info()
 		setloglevel = $Midloglevel$
