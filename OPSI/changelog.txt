@@ -2,6 +2,8 @@
 swaudit (4.3.0.0-1)
 
   * Added appx and msix packages via powershell
+  * new property win_get_appx_data bool (default=false)
+    If true get the Appx and Msix Data but this takes some minutes
 
 -- detlef oertel <d.oertel@uib.de> 2024-05-07
 

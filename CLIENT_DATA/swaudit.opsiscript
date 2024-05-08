@@ -49,6 +49,7 @@ DefVar $readfromfile$
 DefVar $usefilebuffer$
 DefVar $usekeyfinder$
 DefVar $debug_send$
+DefVar $win_get_appx_data$
 DefVar $exitcode$
 DefVar $proccall$
 DefVar $serviceMethod$
@@ -104,6 +105,8 @@ set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
 set $usekeyfinder$ = GetProductProperty("usekeyfinder","off")
 set $debug_send$ = GetProductProperty("debug_send","false")
 set $win10subversion$ = GetProductProperty("win10subversion","hklmproductid")
+set $win_get_appx_data$ = GetProductProperty("win_get_appx_data","false")
+
 set $include_win_hotfixes$ = "true"
 set $Highloglevel$ = "7"
 set $Midloglevel$ = "5"
@@ -204,10 +207,12 @@ if $readfromfile$ = "off"
 		for %aktkey% in $uninstKeys$ do getswdetails4_32("%aktkey%")
 		setloglevel = $Highloglevel$
 
-		message "collecting Appx / Msix product details ..."
-		set $appxFullNames$ = powershellCall("Get-AppxPackage -AllUsers  | select -expandProperty PackageFullName")
-		for %aktName% in $appxFullNames$ do getAppxDetails("%aktName%")
-		setloglevel = $Highloglevel$
+		if $win_get_appx_data$ = "true"
+			message "collecting Appx / Msix product details ...(takes a while)"
+			set $appxFullNames$ = powershellCall("Get-AppxPackage -AllUsers  | select -expandProperty PackageFullName")
+			for %aktName% in $appxFullNames$ do getAppxDetails("%aktName%")
+			setloglevel = $Highloglevel$
+		endif
 		 
 		message "collecting os details ..."
 		get_windows_info()

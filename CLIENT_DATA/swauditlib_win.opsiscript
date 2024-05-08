@@ -219,7 +219,7 @@ DefFunc getAppxDetails($aktname$ : string) : void
 		set $Language$ = ""
 		set $winSoftwareId$ = $aktname$
 		if not ($winSoftwareId$ = "")
-			set $appxDetails$ = powershellCall('Get-AppxPackage -AllUsers  | Where-Object {$_.PackageFullName -eq "'+$aktname$+'""}')
+			set $appxDetails$ = powershellCall('Get-AppxPackage -AllUsers  | Where-Object {$_.PackageFullName -eq "'+$aktname$+'"}')
 			set $Language$ = ""
 			set $binaryName$ = ""
 			set $displayVersion$ = getValueBySeparator("Version",":",$appxDetails$)
