@@ -336,34 +336,34 @@ else
 		comment "we use debug_send: one servicall per object"
 		markErrorNumber
 		opsiservicecall_auditSoftwareOnClient_setObsolete
-		if errorsOccuredSinceMark > 0
+		if errorsOccurredSinceMark > 0
 			isFatalError
 		endif
 		set $serviceMethod$ = "auditSoftware_createObjects"
 		set $softwareObjectList$ = jsonAsArrayToStringList($softwareObjectArray$)
 		for %aktObject% in $softwareObjectList$ do opsiservicecall_create_aktObject
-		if errorsOccuredSinceMark > 0
+		if errorsOccurredSinceMark > 0
 			isFatalError
 		endif
 		set $serviceMethod$ = "auditSoftwareOnClient_createObjects"
 		set $softwareObjectList$ = jsonAsArrayToStringList($softwareOnClientObjectArray$)
 		for %aktObject% in $softwareObjectList$ do opsiservicecall_create_aktObject
-		if errorsOccuredSinceMark > 0
+		if errorsOccurredSinceMark > 0
 			isFatalError
 		endif
 	else
 		setloglevel = $Highloglevel$
 		markErrorNumber
 		opsiservicecall_auditSoftwareOnClient_setObsolete
-		if errorsOccuredSinceMark > 0
+		if errorsOccurredSinceMark > 0
 			isFatalError
 		endif
 		opsiservicecall_auditSoftware_createObjects
-		if errorsOccuredSinceMark > 0
+		if errorsOccurredSinceMark > 0
 			isFatalError
 		endif
 		opsiservicecall_auditSoftwareOnClient_createObjects
-		if errorsOccuredSinceMark > 0
+		if errorsOccurredSinceMark > 0
 			isFatalError
 		endif
 	endif

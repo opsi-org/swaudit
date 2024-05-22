@@ -1,4 +1,10 @@
 [Changelog]
+swaudit (4.3.0.1-1)
+
+  * Fix for appx and msix packages
+
+-- detlef oertel <d.oertel@uib.de> 2024-05-22
+
 swaudit (4.3.0.0-1)
 
   * Added appx and msix packages via powershell

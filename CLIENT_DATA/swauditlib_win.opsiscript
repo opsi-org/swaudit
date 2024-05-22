@@ -223,9 +223,15 @@ DefFunc getAppxDetails($aktname$ : string) : void
 			set $Language$ = ""
 			set $binaryName$ = ""
 			set $displayVersion$ = getValueBySeparator("Version",":",$appxDetails$)
+			if ($displayVersion$ = 'nul') or ($displayVersion$ = 'null')
+				Set $displayVersion$ = ""
+			endif
 			set $displayName$ = getValueBySeparator("Name",":",$appxDetails$)
+			if ($displayName$ = 'nul') or ($displayName$ = 'null')
+				Set $displayName$ = $winSoftwareId$
+			endif
 			set $architecture$ = lower(getValueBySeparator("Architecture",":",$appxDetails$))
-			if $architecture$ = "neutral"
+			if ($architecture$ = "neutral") or ($architecture$ = 'nul') or ($architecture$ = 'null')
 				set $architecture$ = ""
 			endif
 			set $uninstallString$ = ""
