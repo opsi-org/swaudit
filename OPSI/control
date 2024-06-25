@@ -1,6 +1,6 @@
 [Package]
 version: 1
-depends:
+depends: 
 
 [Product]
 type: localboot
@@ -11,14 +11,14 @@ advice: opsi-script >= 4.12.4.35 needed
 version: 4.3.1.0
 priority: -90
 licenseRequired: False
-productClasses:
+productClasses: 
 setupScript: swaudit.opsiscript
-uninstallScript:
-updateScript:
+uninstallScript: 
+updateScript: 
 alwaysScript: swaudit.opsiscript
-onceScript:
-customScript:
-userLoginScript:
+onceScript: 
+customScript: 
+userLoginScript: 
 
 [ProductProperty]
 type: unicode
