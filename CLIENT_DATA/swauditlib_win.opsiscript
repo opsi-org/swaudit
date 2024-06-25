@@ -3,7 +3,7 @@ encoding=utf8
 
 DefFunc getswdetails4_32($aktkey$ : string) : void
 	setloglevel = $Midloglevel$
-	
+
 	if not ($aktkey$ = "")
 		set $installSize$ = "-1"
 		set $binaryName$ = ""
@@ -17,10 +17,6 @@ DefFunc getswdetails4_32($aktkey$ : string) : void
 			set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
 			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
 			set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
-			if $usekeyfinder$ = "on"
-				set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
-			endif
-			
 			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
 			if not($binaryName$ = "")
 				if FileExists($binaryName$)
@@ -49,10 +45,6 @@ DefFunc getswdetails4_64($aktkey$ : string) : void
 			set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
 			set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
 			set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
-			if $usekeyfinder$ = "on"
-				set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
-			endif
-			
 			set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
 			if not($binaryName$ = "")
 				if FileExists($binaryName$)
@@ -73,10 +65,10 @@ DefFunc get_windows_info() : void
 	DefVar $CurrentVersionCurrentVersion$
 	DefVar $CurrentVersionReleaseId$
 	DefStringList $localeMap$
-	
+
 	set $installSize$ = "-1"
 	set $binaryName$ = ""
-	
+
 	; i.e. Windows 7 professional N
 	Set $CurrentVersionProductName$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductName")
 	; i.e. ServicePack 1
@@ -89,7 +81,7 @@ DefFunc get_windows_info() : void
 	Set $CurrentVersionProductId$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductId")
 	; i.e. 6.1
 	Set $CurrentVersionCurrentVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CurrentVersion")
-	
+
 	Set $winSoftwareId$  = "ms_windows_" + takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
 	;Set $displayVersion$ = $CurrentVersionCurrentVersion$
 	; This is 6.3 on win10 - so we use the real version from api with manifest
@@ -125,16 +117,11 @@ DefFunc get_windows_info() : void
 		Set $UBR$ = getRegistryValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR")
 		Set $subversion$ = $CurrentBuild$ + "." + $UBR$
 	endif
-	
-	if $usekeyfinder$ = "on"
-		set $licenseKey$ = GetValueFromInifile("%opsiTmpDir%\swaudit_keys.ini",$winSoftwareId$,"License key","")
-	else
-		set $licenseKey$ = ""
-	endif
-	
+
+	set $licenseKey$ = ""
 	Set $localeMap$ = getLocaleInfoMap
 	Set $Language$ = getValue("system_default_lang_region",$localeMap$)
-	
+
 	if (GetSystemType = "64 Bit System")
 		Set $architecture$ = "x64"
 	else
@@ -145,7 +132,7 @@ Endfunc
 
 DefFunc get_nt6_hotfix_info() : void
 	setloglevel = $Highloglevel$
-	
+
 	Set $displayVersion$ = ""
 	Set $uninstallString$ = ""
 	Set $version$ = ""
@@ -154,7 +141,7 @@ DefFunc get_nt6_hotfix_info() : void
 	set $installSize$ = "-1"
 	set $binaryName$ = ""
 	set $Language$ = LangCodeByHex("0x0000")
-	
+
 	markErrorNumber
 	set $resultlist$ = shellCall("wmic path Win32_QuickFixEngineering get hotfixid")
 	set $resultlist$ = shellCall("wmic qfe get hotfixid")
@@ -184,13 +171,13 @@ DefFunc get_nt6_hotfix_info() : void
 			set $isfatal$ = "false"
 		endif
 	endif
-	
+
 	set $resultlist$ = getListContaining($resultlist$, "KB")
 	for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
-	
+
 	[sub_process_nt6_hotfix_info]
 	setloglevel = $Midloglevel$
-	
+
 	Set $winSoftwareId$  = trim("%akthotfix%")
 	Set $displayName$    = trim("%akthotfix%")
 	Set $name$ = $displayName$
@@ -205,7 +192,7 @@ Endfunc
 
 DefFunc getAppxDetails($aktname$ : string) : void
 	DefStringlist $appxDetails$
-	
+
 	setloglevel = $Midloglevel$
 	if not ($aktname$ = "")
 		set $installSize$ = "-1"
@@ -241,4 +228,4 @@ DefFunc getAppxDetails($aktname$ : string) : void
 Endfunc
 
 
-	
+

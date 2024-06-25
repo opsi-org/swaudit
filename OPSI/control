@@ -1,6 +1,6 @@
 [Package]
 version: 1
-depends: 
+depends:
 
 [Product]
 type: localboot
@@ -8,17 +8,17 @@ id: swaudit
 name: Client Software inventory (Windows / Linux / macos)
 description: Windows: uninstall information from registry / powershell; Linux: from package system
 advice: opsi-script >= 4.12.4.35 needed
-version: 4.3.0.1
+version: 4.3.1.0
 priority: -90
 licenseRequired: False
-productClasses: 
+productClasses:
 setupScript: swaudit.opsiscript
-uninstallScript: 
-updateScript: 
+uninstallScript:
+updateScript:
 alwaysScript: swaudit.opsiscript
-onceScript: 
-customScript: 
-userLoginScript: 
+onceScript:
+customScript:
+userLoginScript:
 
 [ProductProperty]
 type: unicode
@@ -37,15 +37,6 @@ editable: False
 description: Mode of the opsi-script window
 values: ["maximized","minimized","windowed"]
 default: ["maximized"]
-
-[ProductProperty]
-type: unicode
-name: usekeyfinder
-multivalue: False
-editable: False
-description: Try to find license keys
-values: ["off","on"]
-default: ["off"]
 
 [ProductProperty]
 type: unicode

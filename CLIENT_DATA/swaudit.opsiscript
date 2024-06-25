@@ -47,7 +47,6 @@ DefVar $licenseKey$
 DefVar $write2file$
 DefVar $readfromfile$
 DefVar $usefilebuffer$
-DefVar $usekeyfinder$
 DefVar $debug_send$
 DefVar $win_get_appx_data$
 DefVar $exitcode$
@@ -102,7 +101,6 @@ importlib "swauditlib_mac.opsiscript"
 set $clientId$="%HostID%"
 set $readfromfile$ = GetProductProperty("readfromfile","off")
 set $usefilebuffer$ = GetProductProperty("usefilebuffer","off")
-set $usekeyfinder$ = GetProductProperty("usekeyfinder","off")
 set $debug_send$ = GetProductProperty("debug_send","false")
 set $win10subversion$ = GetProductProperty("win10subversion","hklmproductid")
 set $win_get_appx_data$ = GetProductProperty("win_get_appx_data","false")
@@ -176,15 +174,6 @@ setloglevel = $Midloglevel$
 
 if $readfromfile$ = "off"
 	if $OS$ = "Windows_NT"
-		if $usekeyfinder$ = "on"
-			message "collecting license keys ..."
-			set $proccall$ = '"%SCRIPTPATH%\keyfinder\keyfinder.exe" /close /saveini "%opsiTmpDir%\" /file "swaudit_keys.ini"'
-			setloglevel = $Highloglevel$
-			
-			set $exitcode$ = processcall($proccall$)
-			set $LicenseSections$ = GetSectionNames("%opsiTmpDir%\swaudit_keys.ini")
-			setloglevel = $Midloglevel$
-		endif
 		if GetSystemType = "64 Bit System"
 			message "collecting 64 Bit products ..."
 			set $uninstKeys$ = getRegistryKeyList64($uninstkey$)
@@ -194,12 +183,12 @@ if $readfromfile$ = "off"
 			set $Language$ = ""
 			for %aktkey% in $uninstKeys$ do getswdetails4_64("%aktkey%")
 		endif
-		
+
 		message "collecting 32 Bit products ..."
 		set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
 		setloglevel = $Highloglevel$
-		
-		
+
+
 		message "collecting 32 Bit product details ..."
 		set $architecture$ = "x86"
 		set $subversion$ = ""
@@ -213,12 +202,12 @@ if $readfromfile$ = "off"
 			for %aktName% in $appxFullNames$ do getAppxDetails("%aktName%")
 			setloglevel = $Highloglevel$
 		endif
-		 
+
 		message "collecting os details ..."
 		get_windows_info()
 		setloglevel = $Midloglevel$
-		
-		
+
+
 		if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
 			if $include_win_hotfixes$ = "true"
 				message "collecting hotfixes ..."
@@ -233,7 +222,7 @@ if $readfromfile$ = "off"
 	if $OS$ = "Linux"
 		message "collecting products ..."
 		getswdetails4_os()
-		
+
 		if $distrotype$ = "debian"
 			setloglevel = $Midloglevel$
 			set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
@@ -256,7 +245,7 @@ if $readfromfile$ = "off"
 	if $OS$ = "macos"
 		message "collecting products 1..."
 		;sub_getswdetails4_os
-		
+
 		setloglevel = $Midloglevel$
 		;set $outLines$ = getOutstreamFromSection("shellInAnIcon_macos1")
 		set $outLines$ = shellCall('pkgutil --pkgs')
@@ -267,7 +256,7 @@ if $readfromfile$ = "off"
 		;for %aktline% in $outLines$ do getswdetails4_macos2("%aktline%")
 		;set $outLines$ = shellCall("ls -1d /applications/utilities/*.app")
 		;for %aktline% in $outLines$ do getswdetails4_macos2("%aktline%")
-		
+
 		message "collecting products 2..."
 		set $outLines$ = shellCall('ls -1 /Applications/*/Info.plist')
 		; this gives 90% binary files:
@@ -330,7 +319,7 @@ else
 	set $softwareObjectArray$ = stringReplace($softwareObjectArray$, "'", "''")
 	set $softwareOnClientObjectArray$ = stringReplace($softwareOnClientObjectArray$, "'", "''")
 	setloglevel = $Highloglevel$
-	
+
 	if $debug_send$ = "true"
 		setloglevel = $Midloglevel$
 		comment "we use debug_send: one servicall per object"
@@ -367,7 +356,7 @@ else
 			isFatalError
 		endif
 	endif
-	
+
 endif
 Files_del_temp
 
