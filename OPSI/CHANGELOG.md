@@ -2,7 +2,7 @@
 
 ## [4.3.1.0-1] - 2024-06-25
 
-### Fixed
+### Changed
 
 - Remove keyfinder (Jan Schneider <j.schneider@uib.de>)
 
