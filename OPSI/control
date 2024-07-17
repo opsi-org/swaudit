@@ -8,7 +8,7 @@ id: swaudit
 name: Client Software inventory (Windows / Linux / macos)
 description: Windows: uninstall information from registry / powershell; Linux: from package system
 advice: opsi-script >= 4.12.4.35 needed
-version: 4.3.1.0
+version: 4.3.1.1
 priority: -90
 licenseRequired: False
 productClasses: 
@@ -70,9 +70,3 @@ editable: False
 description: Windows 10 OS Build (https://docs.microsoft.com/en-us/windows/windows-10/release-information)  on Win10, Win 2016, Win2019 or begin of HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductId" for example 00330-71317
 values: ["hklmproductid","win10osbuild"]
 default: ["win10osbuild"]
-
-[ProductProperty]
-type: bool
-name: win_get_appx_data
-description: On Windows get data about Appx and Msix packages (takes a while)
-default: False

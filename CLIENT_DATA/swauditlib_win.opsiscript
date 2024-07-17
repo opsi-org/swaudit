@@ -3,7 +3,7 @@ encoding=utf8
 
 DefFunc getswdetails4_32($aktkey$ : string) : void
 	setloglevel = $Midloglevel$
-
+	
 	if not ($aktkey$ = "")
 		set $installSize$ = "-1"
 		set $binaryName$ = ""
@@ -65,10 +65,10 @@ DefFunc get_windows_info() : void
 	DefVar $CurrentVersionCurrentVersion$
 	DefVar $CurrentVersionReleaseId$
 	DefStringList $localeMap$
-
+	
 	set $installSize$ = "-1"
 	set $binaryName$ = ""
-
+	
 	; i.e. Windows 7 professional N
 	Set $CurrentVersionProductName$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductName")
 	; i.e. ServicePack 1
@@ -81,7 +81,7 @@ DefFunc get_windows_info() : void
 	Set $CurrentVersionProductId$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] ProductId")
 	; i.e. 6.1
 	Set $CurrentVersionCurrentVersion$ = GetRegistryStringValueSysNative("[HKLM\Software\Microsoft\Windows NT\CurrentVersion] CurrentVersion")
-
+	
 	Set $winSoftwareId$  = "ms_windows_" + takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
 	;Set $displayVersion$ = $CurrentVersionCurrentVersion$
 	; This is 6.3 on win10 - so we use the real version from api with manifest
@@ -117,11 +117,11 @@ DefFunc get_windows_info() : void
 		Set $UBR$ = getRegistryValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR")
 		Set $subversion$ = $CurrentBuild$ + "." + $UBR$
 	endif
-
+	
 	set $licenseKey$ = ""
 	Set $localeMap$ = getLocaleInfoMap
 	Set $Language$ = getValue("system_default_lang_region",$localeMap$)
-
+	
 	if (GetSystemType = "64 Bit System")
 		Set $architecture$ = "x64"
 	else
@@ -132,7 +132,7 @@ Endfunc
 
 DefFunc get_nt6_hotfix_info() : void
 	setloglevel = $Highloglevel$
-
+	
 	Set $displayVersion$ = ""
 	Set $uninstallString$ = ""
 	Set $version$ = ""
@@ -141,7 +141,7 @@ DefFunc get_nt6_hotfix_info() : void
 	set $installSize$ = "-1"
 	set $binaryName$ = ""
 	set $Language$ = LangCodeByHex("0x0000")
-
+	
 	markErrorNumber
 	set $resultlist$ = shellCall("wmic path Win32_QuickFixEngineering get hotfixid")
 	set $resultlist$ = shellCall("wmic qfe get hotfixid")
@@ -171,13 +171,13 @@ DefFunc get_nt6_hotfix_info() : void
 			set $isfatal$ = "false"
 		endif
 	endif
-
+	
 	set $resultlist$ = getListContaining($resultlist$, "KB")
 	for %akthotfix% in $resultlist$ do sub_process_nt6_hotfix_info
-
+	
 	[sub_process_nt6_hotfix_info]
 	setloglevel = $Midloglevel$
-
+	
 	Set $winSoftwareId$  = trim("%akthotfix%")
 	Set $displayName$    = trim("%akthotfix%")
 	Set $name$ = $displayName$
@@ -192,7 +192,7 @@ Endfunc
 
 DefFunc getAppxDetails($aktname$ : string) : void
 	DefStringlist $appxDetails$
-
+	
 	setloglevel = $Midloglevel$
 	if not ($aktname$ = "")
 		set $installSize$ = "-1"
@@ -223,6 +223,81 @@ DefFunc getAppxDetails($aktname$ : string) : void
 			endif
 			set $uninstallString$ = ""
 			create_hash4()
+		endif
+	endif
+Endfunc
+
+DefFunc getAppxInfos() : void
+	DefStringlist $appxInfoList$
+	DefVar $appxInfo$
+	DefStringlist $appxInfoLineEntryList$
+	DefVar $key$
+	DefVar $value$
+	
+	setloglevel = $Midloglevel$
+	; init not variable fields
+	set $installSize$ = "-1"
+	set $binaryName$ = ""
+	set $Language$ = ""
+	set $licenseKey$ = ""
+	set $subversion$ = ""
+	set $Language$ = ""
+	set $uninstallString$ = ""
+	; init variable fields
+	Set $name$ = ""
+	Set $version$ = ""
+	set $displayName$ = ""
+	set $architecture$ = ""
+	set $displayVersion$ = ""
+	set $winSoftwareId$ = ""
+	
+	set $appxInfoList$ = powershellCall('Get-AppxPackage -AllUsers | Format-List -Property Name, Architecture, Version, PackageFullName')
+	for %appxInfoLine% in $appxInfoList$ do sub_handle_info_line
+	
+	[sub_handle_info_line]
+	if not("%appxInfoLine%" = "")
+		set $appxInfoLineEntryList$ = splitString("%appxInfoLine%",":")
+		if count($appxInfoLineEntryList$) = "2"
+			set $key$ = trim(takeString(0,$appxInfoLineEntryList$))
+			set $value$ = trim(takeString(1,$appxInfoLineEntryList$))
+			if $key$ = "Name"
+				set $displayName$ = $value$
+				if ($displayName$ = 'nul') or ($displayName$ = 'null')
+					Set $displayName$ = ""
+				endif
+				;comment "Start with entry for: "+$displayName$
+			elseif $key$ = "Architecture"
+				set $architecture$ = $value$
+				if ($architecture$ = "neutral") or ($architecture$ = 'nul') or ($architecture$ = 'null')
+					set $architecture$ = ""
+				endif
+			elseif $key$ = "Version"
+				set $displayVersion$ = $value$
+				if ($displayVersion$ = 'nul') or ($displayVersion$ = 'null')
+					Set $displayVersion$ = ""
+				endif
+			elseif $key$ = "PackageFullName"
+				if not($value$ = "")
+					set $winSoftwareId$ = $value$
+					if $displayName$ = ""
+						Set $displayName$ = $value$
+					endif
+					Set $name$ = $displayName$
+					Set $version$ = $displayVersion$
+					; this was the last entry, so we create the object
+					;comment "Create entry for: "+$winSoftwareId$
+					create_hash4()
+					setloglevel = $Midloglevel$
+					;comment "Finished entry for: "+$winSoftwareId$
+					; init variable fields
+					Set $name$ = ""
+					Set $version$ = ""
+					set $displayName$ = ""
+					set $architecture$ = ""
+					set $displayVersion$ = ""
+					set $winSoftwareId$ = ""
+				endif
+			endif
 		endif
 	endif
 Endfunc

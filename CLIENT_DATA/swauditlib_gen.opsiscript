@@ -12,7 +12,7 @@ DefFunc create_hash4() : void
 		set $version$ = $displayVersion$
 	endif
 	
-	setloglevel = $Highloglevel$
+	setloglevel = $Midloglevel$
 	
 	
 	comment "Product: "+$name$+" Version: "+$version$+" Archticture: "+$architecture$

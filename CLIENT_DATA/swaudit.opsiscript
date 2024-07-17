@@ -183,31 +183,28 @@ if $readfromfile$ = "off"
 			set $Language$ = ""
 			for %aktkey% in $uninstKeys$ do getswdetails4_64("%aktkey%")
 		endif
-
+		
 		message "collecting 32 Bit products ..."
 		set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
 		setloglevel = $Highloglevel$
-
-
+		
+		
 		message "collecting 32 Bit product details ..."
 		set $architecture$ = "x86"
 		set $subversion$ = ""
 		set $Language$ = ""
 		for %aktkey% in $uninstKeys$ do getswdetails4_32("%aktkey%")
 		setloglevel = $Highloglevel$
-
-		if $win_get_appx_data$ = "true"
-			message "collecting Appx / Msix product details ...(takes a while)"
-			set $appxFullNames$ = powershellCall("Get-AppxPackage -AllUsers  | select -expandProperty PackageFullName")
-			for %aktName% in $appxFullNames$ do getAppxDetails("%aktName%")
-			setloglevel = $Highloglevel$
-		endif
-
+		
+		message "collecting Appx / Msix product details ...(takes a while)"
+		getAppxInfos()
+		setloglevel = $Highloglevel$
+		
 		message "collecting os details ..."
 		get_windows_info()
 		setloglevel = $Midloglevel$
-
-
+		
+		
 		if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
 			if $include_win_hotfixes$ = "true"
 				message "collecting hotfixes ..."
@@ -222,7 +219,7 @@ if $readfromfile$ = "off"
 	if $OS$ = "Linux"
 		message "collecting products ..."
 		getswdetails4_os()
-
+		
 		if $distrotype$ = "debian"
 			setloglevel = $Midloglevel$
 			set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
@@ -245,7 +242,7 @@ if $readfromfile$ = "off"
 	if $OS$ = "macos"
 		message "collecting products 1..."
 		;sub_getswdetails4_os
-
+		
 		setloglevel = $Midloglevel$
 		;set $outLines$ = getOutstreamFromSection("shellInAnIcon_macos1")
 		set $outLines$ = shellCall('pkgutil --pkgs')
@@ -256,7 +253,7 @@ if $readfromfile$ = "off"
 		;for %aktline% in $outLines$ do getswdetails4_macos2("%aktline%")
 		;set $outLines$ = shellCall("ls -1d /applications/utilities/*.app")
 		;for %aktline% in $outLines$ do getswdetails4_macos2("%aktline%")
-
+		
 		message "collecting products 2..."
 		set $outLines$ = shellCall('ls -1 /Applications/*/Info.plist')
 		; this gives 90% binary files:
@@ -319,7 +316,7 @@ else
 	set $softwareObjectArray$ = stringReplace($softwareObjectArray$, "'", "''")
 	set $softwareOnClientObjectArray$ = stringReplace($softwareOnClientObjectArray$, "'", "''")
 	setloglevel = $Highloglevel$
-
+	
 	if $debug_send$ = "true"
 		setloglevel = $Midloglevel$
 		comment "we use debug_send: one servicall per object"
@@ -356,7 +353,7 @@ else
 			isFatalError
 		endif
 	endif
-
+	
 endif
 Files_del_temp
 

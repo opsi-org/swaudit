@@ -1,5 +1,13 @@
 # Changelog swaudit
 
+## [4.3.1.1-1] - 2024-07-17
+
+### Changed
+
+- Enhance Performance for appx and msix packages (detlef oertel <d.oertel@uib.de>)
+- remove property win_get_appx_data bool  (detlef oertel <d.oertel@uib.de>)
+
+
 ## [4.3.1.0-1] - 2024-06-25
 
 ### Changed
