@@ -221,8 +221,8 @@ DefFunc getAppxDetails($aktname$ : string) : void
 			if ($architecture$ = "neutral") or ($architecture$ = 'nul') or ($architecture$ = 'null')
 				set $architecture$ = ""
 			endif
-			; workaround for not allwowed architecture 'arm' in opsi backend
-			if ($architecture$ = "arm")
+			; workaround for not allwowed architecture 'arm' and 'arm64' in opsi backend
+			if ($architecture$ = "arm") or ($architecture$ = 'arm64')
 				set $architecture$ = ""
 			endif
 			set $uninstallString$ = ""
@@ -275,8 +275,8 @@ DefFunc getAppxInfos() : void
 				if ($architecture$ = "neutral") or ($architecture$ = 'nul') or ($architecture$ = 'null')
 					set $architecture$ = ""
 				endif
-				; workaround for not allwowed architecture 'arm' in opsi backend
-				if ($architecture$ = "arm")
+				; workaround for not allwowed architecture 'arm' and 'arm64' in opsi backend
+				if ($architecture$ = "arm") or ($architecture$ = 'arm64')
 					set $architecture$ = ""
 				endif
 			elseif $key$ = "Version"
