@@ -1,5 +1,20 @@
 # Changelog swaudit
 
+## [4.3.1.2-1] - 2024-09-07
+
+### Fixed
+
+- On windows 8 there may be  packages for architecture arm. For example:
+Microsoft.VCLibs.120.00_12.0.21005.1_arm__8wekyb3d8bbwe
+found on bwfscwin8x64e.uib.local
+According to OTW13 is arm not an allowed architecture in opsi (right now)
+and so we get an error () if we try to write this to the backend.
+Workaround: In swauditlib_win.opsiscript: getAppxDetails:
+In case of architecture="arm" we use architecture=""
+(detlef oertel <d.oertel@uib.de>)
+
+
+
 ## [4.3.1.1-1] - 2024-07-17
 
 ### Changed

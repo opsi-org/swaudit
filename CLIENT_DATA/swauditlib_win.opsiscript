@@ -221,6 +221,10 @@ DefFunc getAppxDetails($aktname$ : string) : void
 			if ($architecture$ = "neutral") or ($architecture$ = 'nul') or ($architecture$ = 'null')
 				set $architecture$ = ""
 			endif
+			; workaround for not allwowed architecture 'arm' in opsi backend
+			if ($architecture$ = "arm")
+				set $architecture$ = ""
+			endif
 			set $uninstallString$ = ""
 			create_hash4()
 		endif
@@ -267,8 +271,12 @@ DefFunc getAppxInfos() : void
 				endif
 				;comment "Start with entry for: "+$displayName$
 			elseif $key$ = "Architecture"
-				set $architecture$ = $value$
+				set $architecture$ = lower($value$)
 				if ($architecture$ = "neutral") or ($architecture$ = 'nul') or ($architecture$ = 'null')
+					set $architecture$ = ""
+				endif
+				; workaround for not allwowed architecture 'arm' in opsi backend
+				if ($architecture$ = "arm")
 					set $architecture$ = ""
 				endif
 			elseif $key$ = "Version"
