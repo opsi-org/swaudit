@@ -1,5 +1,9 @@
 # Changelog swaudit
 
+## [4.3.1.2-4] - 2025-01-23
+
+- checking if Get-appxPackage call exists and if not skipping appx data collection. (Nils Doerrer <n.doerrer@uib.de>)
+
 ## [4.3.1.2-3] - 2024-09-07
 
 ### Fixed
