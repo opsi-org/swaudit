@@ -2,11 +2,15 @@
 
 ## [4.3.2.0-1] - 2025-03-17
 
+### Added
+
 - Set new AuditSoftware attribute "isOperatingSystem"
 - Fetch operating system info on macOS
 - Partial support for arm64 architecture
 
 ## [4.3.1.2-4] - 2025-01-23
+
+### Fixed
 
 - checking if Get-appxPackage call exists and if not skipping appx data collection. (Nils Doerrer <n.doerrer@uib.de>)
 
