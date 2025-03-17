@@ -30,7 +30,6 @@ DefFunc get_windows_os_info() : void
 	Set $winSoftwareId$  = "ms_windows_" + takeString(0, splitString($CurrentVersionProductId$, "-")) + "-" + takeString(1, splitString($CurrentVersionProductId$, "-"))
 	;Set $displayVersion$ = $CurrentVersionCurrentVersion$
 	; This is 6.3 on win10 - so we use the real version from api with manifest
-	Set $displayVersion$ = GetMsVersionInfo
 	Set $displayName$    = $CurrentVersionProductName$
 	if not ($CurrentVersionCSDVersion$ = "")
 		Set $displayName$ = $displayName$ + " (" + $CurrentVersionCSDVersion$ + ")"
@@ -62,6 +61,7 @@ DefFunc get_windows_os_info() : void
 		Set $CurrentBuild$ = $CurrentBuild$ + "." + $UBR$
 	endif
 	Set $version$ = $version$ + "." + $CurrentBuild$
+	Set $displayVersion$ = $version$
 
 	set $licenseKey$ = ""
 	Set $localeMap$ = getLocaleInfoMap
