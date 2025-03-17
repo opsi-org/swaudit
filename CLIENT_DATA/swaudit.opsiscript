@@ -155,7 +155,7 @@ if $OS$ = "Linux"
 	set $distroarch$  = getValue("machine", $linuxInfo$)
 endif
 
-if $OS$ = "Linux"
+if $OS$ = "macos"
 	set $macosInfo$ = getMacosVersionMap
 endif
 

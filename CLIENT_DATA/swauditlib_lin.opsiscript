@@ -23,9 +23,11 @@ DefFunc get_linux_os_info() : void
 			set $architecture$ = ""
 		EndCase
 	EndSwitch
-	Set $isOperatingSystem$ = "1"
+	Set $isOperatingSystem$ = "true"
 
 	add_audit_objects()
+
+	Set $isOperatingSystem$ = "false"
 Endfunc
 
 

@@ -9,8 +9,12 @@ DefFunc get_macos_os_info() : void
 	setloglevel=$Midloglevel$
 
 	DefVar $macosRelease$ = getValue("Release", $macosInfo$)
-	DefVar $versionParts$ = splitString($macosRelease$, ".")
-	DefVar $macosMajorVersion$ = takeString(0, $versionParts$) + "." + takeString(1, $versionParts$)
+	DefStringList $versionParts$ = splitString($macosRelease$, ".")
+	DefVar $macosMajorVersion$ = takeString(0, $versionParts$)
+
+	if ($macosMajorVersion$ <= "10")
+		Set $macosMajorVersion$ = $macosMajorVersion$ + "." + takeString(1, $versionParts$)
+	endif
 
 	Set $displayName$ = "macOS " + $macosMajorVersion$
 	set $displayVersion$ = $macosRelease$
@@ -28,9 +32,11 @@ DefFunc get_macos_os_info() : void
 			set $architecture$ = ""
 		EndCase
 	EndSwitch
-	Set $isOperatingSystem$ = "1"
+	Set $isOperatingSystem$ = "true"
 
 	add_audit_objects()
+
+	Set $isOperatingSystem$ = "false"
 
 Endfunc
 
