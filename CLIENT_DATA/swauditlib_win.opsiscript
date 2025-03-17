@@ -81,7 +81,7 @@ DefFunc get_windows_os_info() : void
 			set $architecture$ = ""
 		EndCase
 	EndSwitch
-	Set $isOperatingSystem$ = 1
+	Set $isOperatingSystem$ = "1"
 
 	add_audit_objects()
 Endfunc
@@ -98,11 +98,11 @@ DefFunc get_windows_products_32($currentKey$ : string) : void
 		Set $version$ = ""
 		set $winSoftwareId$ = $currentKey$
 		if not ($winSoftwareId$ = "")
-			set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] DisplayVersion")
-			set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] displayName")
-			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
-			set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] uninstallString")
-			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
+			set $displayVersion$ = GetRegistryStringValue32("["+$uninstkey$+"\"+$currentKey$+"] DisplayVersion")
+			set $displayName$ = GetRegistryStringValue32("["+$uninstkey$+"\"+$currentKey$+"] displayName")
+			set $binaryName$ = GetRegistryStringValue32("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
+			set $uninstallString$ = GetRegistryStringValue32("["+$uninstkey$+"\"+$currentKey$+"] uninstallString")
+			set $binaryName$ = GetRegistryStringValue32("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
 			if not($binaryName$ = "")
 				if FileExists($binaryName$)
 					set $VerInfoMap$ = getFileInfoMap($binaryName$)
@@ -127,10 +127,10 @@ DefFunc get_windows_products_64($currentKey$ : string) : void
 		if not ($winSoftwareId$ = "")
 			set $Language$ = ""
 			set $binaryName$ = ""
-			set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$currentKey$+"] DisplayVersion")
-			set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$currentKey$+"] displayName")
-			set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$currentKey$+"] uninstallString")
-			set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
+			set $displayVersion$ = GetRegistryStringValue64("["+$uninstkey$+"\"+$currentKey$+"] DisplayVersion")
+			set $displayName$ = GetRegistryStringValue64("["+$uninstkey$+"\"+$currentKey$+"] displayName")
+			set $uninstallString$ = GetRegistryStringValue64("["+$uninstkey$+"\"+$currentKey$+"] uninstallString")
+			set $binaryName$ = GetRegistryStringValue64("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
 			if not($binaryName$ = "")
 				if FileExists($binaryName$)
 					set $VerInfoMap$ = getFileInfoMap($binaryName$)

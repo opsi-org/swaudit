@@ -102,7 +102,7 @@ DefFunc init_vars() : void
 	set $uninstallString$ = ""
 	set $binaryName$ = ""
 	set $licenseKey$ = ""
-	set $isOperatingSystem$ = 0
+	set $isOperatingSystem$ = "0"
 	Switch $OS$
 		Case "Linux"
 			set $subversion$ = "Lin:"
