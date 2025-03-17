@@ -81,7 +81,7 @@ DefFunc get_windows_os_info() : void
 			set $architecture$ = ""
 		EndCase
 	EndSwitch
-	Set $isOperatingSystem$ = "true"
+	Set $isOperatingSystem$ = 1
 
 	add_audit_objects()
 Endfunc
