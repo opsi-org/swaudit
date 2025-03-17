@@ -1,8 +1,10 @@
+; Copyright (c) uib GmbH <info@uib.de>
+; License: AGPL-3.0
 
 encoding=utf8
 
 DefFunc create_hash4() : void
-	
+
 	if $displayName$ = ""
 		set $name$ = $winSoftwareId$
 	else
@@ -11,11 +13,11 @@ DefFunc create_hash4() : void
 	if $version$ = ""
 		set $version$ = $displayVersion$
 	endif
-	
+
 	setloglevel = $Midloglevel$
-	
-	
-	comment "Product: "+$name$+" Version: "+$version$+" Archticture: "+$architecture$
+
+
+	comment "Product: " + $name$ + " Version: " + $version$ + " Archticture: " + $architecture$
 	;comment ""
 	;comment "next product is...."
 	;comment "$name$  ----------------= "+$name$
@@ -31,17 +33,16 @@ DefFunc create_hash4() : void
 	;comment "$displayVersion$ -------= "+$displayVersion$
 	;comment "$binaryName$ -----------= "+$binaryName$
 	;comment "$licenseKey$ -----------= "+$licenseKey$
-	
+
 	setloglevel = $Lowloglevel$
-	
-	
-	; trim entries to DB field length
+
+
+	; Trim entries to DB field length
 	set $name$ = strPart($name$,"1","99")
 	set $version$ = strPart($version$,"1","99")
 	set $subversion$ = strPart($subversion$,"1","99")
 	set $Language$ = strPart($Language$,"1","9")
-	; here we need 5 chars for arm64
-	set $architecture$ = strPart($architecture$,"1","3")
+	set $architecture$ = strPart($architecture$,"1","5")
 	set $winSoftwareId$ = strPart($winSoftwareId$,"1","99")
 	set $displayName$ = strPart($displayName$,"1","99")
 	set $displayVersion$ = strPart($displayVersion$,"1","99")
@@ -49,8 +50,8 @@ DefFunc create_hash4() : void
 	set $uninstallString$ = strPart($uninstallString$,"1","199")
 	set $binaryName$ = strPart($binaryName$,"1","99")
 	set $licenseKey$ = strPart($licenseKey$,"1","254")
-	
-	; make json objects
+
+	; Create JSON objects
 	set $softwareObject$ = "{}"
 	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"type","AuditSoftware")
 	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"name",$name$)
@@ -65,10 +66,10 @@ DefFunc create_hash4() : void
 	if jsonIsObject($softwareObject$)
 		set $softwareObjectList$ = addtolist($softwareObjectList$,$softwareObject$)
 	else
-		Logwarning "Could not add : "+$softwareObject$
+		LogWarning "Could not add : " + $softwareObject$
 	endif
-	
-	
+
+
 	set $softwareOnClientObject$ = "{}"
 	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"type","AuditSoftwareOnClient")
 	set $softwareOnClientObject$ = jsonAsObjectSetStringtypeValueByKey($softwareOnClientObject$,"name",$name$)
@@ -83,12 +84,12 @@ DefFunc create_hash4() : void
 	if jsonIsObject($softwareOnClientObject$)
 		set $softwareOnClientObjectList$ = addtolist($softwareOnClientObjectList$,$softwareOnClientObject$)
 	else
-		Logwarning "Could not add : "+$softwareOnClientObject$
+		LogWarning "Could not add : " + $softwareOnClientObject$
 	endif
 EndFunc
 
 DefFunc init_vars() : void
-	
+
 	set $installSize$ = "-1"
 	set $architecture$ = ""
 	set $version$ = ""
@@ -110,5 +111,5 @@ DefFunc init_vars() : void
 			set $subversion$ = ""
 		EndCase
 	EndSwitch
-	
+
 EndFunc

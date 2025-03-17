@@ -1,5 +1,7 @@
-encoding=utf8
+; Copyright (c) uib GmbH <info@uib.de>
+; License: AGPL-3.0
 
+encoding=utf8
 
 DefFunc getswdetails4_macos1($aktkey$ : string) : void
 	setloglevel=$Midloglevel$

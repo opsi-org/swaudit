@@ -1,7 +1,5 @@
-; Copyright (c) uib GmbH (www.uib.de)
-; This sourcecode is owned by uib
-; and published under the Terms of the General Public License.
-
+; Copyright (c) uib GmbH <info@uib.de>
+; License: AGPL-3.0
 
 [actions]
 encoding=utf8
@@ -141,7 +139,7 @@ endif
 if $OS$ = "Windows_NT"
 	if CompareDotSeparatedNumbers(GetMsVersionInfo,"<","5.1")
 		logError "Run aborted: wrong Windows version: only winxp and above allowed"
-		isFatalError "Wrong Win Version"
+		isFatalError "Windows version not supported"
 	endif
 endif
 
@@ -157,9 +155,9 @@ endif
 
 
 
-comment "detect if we run in opsi service mode"
+comment "Detect if we run in opsi service mode"
 if "%installingProdName%" = ""
-	comment " we running standalone"
+	comment "Running standalone"
 	set $write2file$ = "on"
 else
 	set $write2file$ = "off"
@@ -172,21 +170,21 @@ setloglevel = $Midloglevel$
 if $readfromfile$ = "off"
 	if $OS$ = "Windows_NT"
 		if GetSystemType = "64 Bit System"
-			message "collecting 64 Bit products ..."
+			message "Collecting 64 Bit products ..."
 			set $uninstKeys$ = getRegistryKeyList64($uninstkey$)
-			message "collecting 64 Bit product details ..."
+			message "Collecting 64 Bit product details ..."
 			set $architecture$ = "x64"
 			set $subversion$ = ""
 			set $Language$ = ""
 			for %aktkey% in $uninstKeys$ do getswdetails4_64("%aktkey%")
 		endif
-		
-		message "collecting 32 Bit products ..."
+
+		message "Collecting 32 Bit products ..."
 		set $uninstKeys$ = getRegistryKeyList32($uninstkey$)
 		setloglevel = $Highloglevel$
-		
-		
-		message "collecting 32 Bit product details ..."
+
+
+		message "Collecting 32 Bit product details ..."
 		set $architecture$ = "x86"
 		set $subversion$ = ""
 		set $Language$ = ""
@@ -195,84 +193,72 @@ if $readfromfile$ = "off"
 
 		PowerShellCall('Get-AppxPackage /?')
 		if ("0" = GetLastExitcode)
-			message "collecting Appx / Msix product details ...(takes a while)"
+			message "Collecting Appx / Msix product details ...(takes a while)"
 			getAppxInfos()
 		endif
 		setloglevel = $Highloglevel$
-		
-		message "collecting os details ..."
+
+		message "Collecting os details ..."
 		get_windows_info()
 		setloglevel = $Midloglevel$
-		
-		
+
+
 		if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
 			if $include_win_hotfixes$ = "true"
-				message "collecting hotfixes ..."
+				message "Collecting hotfixes ..."getswdetails4_redhat
 				get_nt6_hotfix_info()
 				setloglevel = $Highloglevel$
 			endif
-		endif  ; nt6
-		;comment "convert object list to json array .."
-		;set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
-		;set $softwareOnClientObjectArray$ = jsonStringListToJsonArray($softwareOnClientObjectList$)
-	endif ; Windows
+		endif
+	endif
 	if $OS$ = "Linux"
-		message "collecting products ..."
+		message "Collecting products ..."
 		getswdetails4_os()
-		
+
 		if $distrotype$ = "debian"
 			setloglevel = $Midloglevel$
 			set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
 			for %aktline% in $outLines$ do getswdetails4_deb("%aktline%")
 			setloglevel=$Highloglevel$
-		endif  ; debian
+		endif
 		if $distrotype$ = "suse"
 			setloglevel = $Midloglevel$
 			set $outLines$ = getOutstreamFromSection("shellInAnIcon_suse")
 			for %aktline% in $outLines$ do getswdetails4_suse("%aktline%")
 			setloglevel=$Highloglevel$
-		endif  ; suse
+		endif
 		if $distrotype$ = "redhat"
 			setloglevel = $Midloglevel$
 			set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
 			for %aktline% in $outLines$ do getswdetails4_redhat("%aktline%")
 			setloglevel=$Highloglevel$
-		endif  ; redhat
+		endif
 	endif ; linux
 	if $OS$ = "macos"
-		message "collecting products 1..."
-		;sub_getswdetails4_os
-		
+		message "Collecting products #1 ..."
 		setloglevel = $Midloglevel$
-		;set $outLines$ = getOutstreamFromSection("shellInAnIcon_macos1")
 		set $outLines$ = shellCall('pkgutil --pkgs')
 		for %aktline% in $outLines$ do getswdetails4_macos1("%aktline%")
-		;set $outLines$ = shellCall("find / -iname *.app | sed '/\.app.*\.app/d'")
-		;set $outLines$ = listFiles("/Applications","Info.plist","True")
-		;set $outLines$ = shellCall("ls -1d /applications/*.app")
-		;for %aktline% in $outLines$ do getswdetails4_macos2("%aktline%")
-		;set $outLines$ = shellCall("ls -1d /applications/utilities/*.app")
-		;for %aktline% in $outLines$ do getswdetails4_macos2("%aktline%")
-		
-		message "collecting products 2..."
+
+		message "Collecting products #2 ..."
 		set $outLines$ = shellCall('ls -1 /Applications/*/Info.plist')
 		; this gives 90% binary files:
 		;set $outLines$ = listFiles("/Applications","Info.plist","True")
-		message "collecting products 3..."
+		message "Collecting products #3 ..."
 		for %aktline% in $outLines$ do getswdetails4_macos3("%aktline%")
 		if fileExists("/usr/local/bin/brew")
-			message "collecting products 3..."
+			message "collecting products #3 ..."
 			set $outLines$ = shellCall("sudo -H -u opsisetupadmin brew list -1 --versions")
 			for %aktline% in $outLines$ do getswdetails4_macos4("%aktline%")
 		endif
 		setloglevel=$Highloglevel$
 	endif ; macos
 	setloglevel = $Midloglevel$
-	comment "convert object list to json array .."
+	comment "Convert object list to json array ..."
 	set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
 	set $softwareOnClientObjectArray$ = jsonStringListToJsonArray($softwareOnClientObjectList$)
 else
-	comment "read from file - only for debugging"
+	comment "Read from file - only for debugging"
 	setloglevel=$Highloglevel$
 	set $softwareObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftware_%PCName%.json","utf8")
 	set $softwareOnClientObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json","utf8")
@@ -281,7 +267,7 @@ else
 	setloglevel = $Midloglevel$
 endif
 if $write2file$ = "on"
-	message "writing results back to file ..."
+	message "Writing results to file ..."
 	Files_del_old
 	if not (saveTextFileWithEncoding(createStringList($softwareObjectArray$),"%opsiTmpDir%\auditsoftware_%PCName%.json","utf8"))
 		logerror "Could not save file: %opsiTmpDir%\auditsoftware_%PCName%.json"
@@ -291,11 +277,11 @@ if $write2file$ = "on"
 	endif
 else
 	setloglevel = $Midloglevel$
-	message "writing results back to service ..."
+	message "Sending results to service ..."
 	if $usefilebuffer$ = "on"
-		comment "use file buffer ..."
+		comment "Use file buffer ..."
 		Files_del_old
-		comment "write file buffer ..."
+		comment "Write file buffer ..."
 		markErrorNumber
 		if not (saveTextFileWithEncoding(createStringList($softwareObjectArray$),"%opsiTmpDir%\auditsoftware_%PCName%.json","utf8"))
 			logerror "Could not save file: %opsiTmpDir%\auditsoftware_%PCName%.json"
@@ -304,7 +290,7 @@ else
 			logerror "Could not save file: %opsiTmpDir%\auditsoftwareOnClient_%PCName%.json"
 		endif
 		if errorsOccurredSinceMark = 0
-			comment "read file buffer ..."
+			comment "Read file buffer ..."
 			set $softwareObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftware_%PCName%.json","utf8")
 			set $softwareOnClientObjectArray$ = strLoadTextFileWithEncoding("%opsiTmpDir%\auditsoftwareOnClient_%PCName%.json","utf8")
 		else
@@ -312,14 +298,14 @@ else
 			isFatalError "save file failed"
 		endif
 	endif
-	comment "mask single quotes by double single quotes before sending ...."
+	comment "Mask single quotes by double single quotes before sending ...."
 	set $softwareObjectArray$ = stringReplace($softwareObjectArray$, "'", "''")
 	set $softwareOnClientObjectArray$ = stringReplace($softwareOnClientObjectArray$, "'", "''")
 	setloglevel = $Highloglevel$
-	
+
 	if $debug_send$ = "true"
 		setloglevel = $Midloglevel$
-		comment "we use debug_send: one servicall per object"
+		comment "One servicall per object, because debug_send is set"
 		markErrorNumber
 		opsiservicecall_auditSoftwareOnClient_setObsolete
 		if errorsOccurredSinceMark > 0
@@ -353,7 +339,7 @@ else
 			isFatalError
 		endif
 	endif
-	
+
 endif
 Files_del_temp
 

@@ -1,3 +1,6 @@
+; Copyright (c) uib GmbH <info@uib.de>
+; License: AGPL-3.0
+
 encoding=utf8
 
 DefFunc getswdetails4_os() : void
@@ -12,6 +15,9 @@ DefFunc getswdetails4_os() : void
 		endif
 		if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
 			set $architecture$ = "x64"
+		endif
+		if ($tmp$ = "aarch64")
+			set $architecture$ = "arm64"
 		endif
 		if ($tmp$ = "noarch") or ($tmp$ = "all")
 			set $architecture$ = ""
@@ -30,12 +36,12 @@ DefFunc getswdetails4_deb($aktkey$ : string) : void
 		set $resultlist$ = splitStringOnWhiteSpace($aktkey$)
 		set $listcount$ = count($resultlist$)
 		set $displayName$ = takeString(0,$resultlist$)
-		; get install state
+		; Get installation state
 		set $tmp$ = ""
 		if $listcount$ int>= "5"
 			set $tmp$ = takeString(4,$resultlist$)
 		endif
-		;do not include packages with state 'rc'
+		; Do not include packages with state 'rc'
 		if not ($displayName$ = '') and not($tmp$ = 'rc')
 			if $listcount$ int>= "2"
 				set $displayVersion$ = takeString(1,$resultlist$)
@@ -59,7 +65,7 @@ DefFunc getswdetails4_deb($aktkey$ : string) : void
 				endif
 			endif
 			set $winSoftwareId$ = $displayName$
-			
+
 			create_hash4()
 		endif
 	endif
@@ -84,7 +90,7 @@ DefFunc getswdetails4_suse($aktkey$ : string) : void
 				set $architecture$ = ""
 			endif
 			set $winSoftwareId$ = $displayName$
-			
+
 			create_hash4()
 		endif
 	endif
@@ -105,12 +111,15 @@ DefFunc getswdetails4_redhat($aktkey$ : string) : void
 		if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
 			set $architecture$ = "x64"
 		endif
+		if ($tmp$ = "aarch64")
+			set $architecture$ = "arm64"
+		endif
 		if ($tmp$ = "noarch") or ($tmp$ = "all")
 			set $architecture$ = ""
 		endif
 		set $displayVersion$ = takeString(1,$resultlist$)
 		set $winSoftwareId$ = $displayName$
-		
+
 		create_hash4()
 	endif
 Endfunc
