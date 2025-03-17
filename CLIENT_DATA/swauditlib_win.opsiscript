@@ -1,64 +1,9 @@
 encoding=utf8
 
 
-DefFunc getswdetails4_32($aktkey$ : string) : void
-	setloglevel = $Midloglevel$
+DefFunc get_windows_os_info() : void
+	init_vars()
 
-	if not ($aktkey$ = "")
-		set $installSize$ = "-1"
-		set $binaryName$ = ""
-		set $Language$ = ""
-		set $licenseKey$ = ""
-		Set $displayVersion$ = ""
-		Set $version$ = ""
-		set $winSoftwareId$ = $aktkey$
-		if not ($winSoftwareId$ = "")
-			set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
-			set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
-			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
-			set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
-			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
-			if not($binaryName$ = "")
-				if FileExists($binaryName$)
-					set $VerInfoMap$ = getFileInfoMap($binaryName$)
-					set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
-					set $Language$ = LangCodeByHex($langCodeHex$)
-				endif
-			endif
-			create_hash4()
-		endif
-	endif
-Endfunc
-
-DefFunc getswdetails4_64($aktkey$ : string) : void
-	if not ($aktkey$ = "")
-		set $installSize$ = "-1"
-		set $binaryName$ = ""
-		set $Language$ = ""
-		set $licenseKey$ = ""
-		Set $displayVersion$ = ""
-		Set $version$ = ""
-		set $winSoftwareId$ = $aktkey$
-		if not ($winSoftwareId$ = "")
-			set $Language$ = ""
-			set $binaryName$ = ""
-			set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] DisplayVersion")
-			set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] displayName")
-			set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] uninstallString")
-			set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$aktkey$+"] binaryName")
-			if not($binaryName$ = "")
-				if FileExists($binaryName$)
-					set $VerInfoMap$ = getFileInfoMap($binaryName$)
-					set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
-					set $Language$ = LangCodeByHex($langCodeHex$)
-				endif
-			endif
-			create_hash4()
-		endif
-	endif
-Endfunc
-
-DefFunc get_windows_info() : void
 	DefVar $CurrentVersionProductName$
 	DefVar $CurrentVersionCSDVersion$
 	DefVar $CurrentVersionProductId$
@@ -122,15 +67,83 @@ DefFunc get_windows_info() : void
 	Set $localeMap$ = getLocaleInfoMap
 	Set $Language$ = getValue("system_default_lang_region",$localeMap$)
 
-	if (GetSystemType = "64 Bit System")
-		Set $architecture$ = "x64"
-	else
-		Set $architecture$ = "x86"
-	endif
-	create_hash4()
+	Switch getOSArchitecture
+		Case "x86_32"
+			set $architecture$ = "x86"
+		EndCase
+		Case "x86_64"
+			set $architecture$ = "x64"
+		EndCase
+		Case "arm_64"
+			set $architecture$ = "arm64"
+		EndCase
+		DefaultCase
+			set $architecture$ = ""
+		EndCase
+	EndSwitch
+	Set $isOperatingSystem$ = "true"
+
+	add_audit_objects()
 Endfunc
 
-DefFunc get_nt6_hotfix_info() : void
+DefFunc get_windows_products_32($currentKey$ : string) : void
+	setloglevel = $Midloglevel$
+
+	if not ($currentKey$ = "")
+		set $installSize$ = "-1"
+		set $binaryName$ = ""
+		set $Language$ = ""
+		set $licenseKey$ = ""
+		Set $displayVersion$ = ""
+		Set $version$ = ""
+		set $winSoftwareId$ = $currentKey$
+		if not ($winSoftwareId$ = "")
+			set $displayVersion$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] DisplayVersion")
+			set $displayName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] displayName")
+			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
+			set $uninstallString$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] uninstallString")
+			set $binaryName$ = GetRegistrystringvalue32 ("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
+			if not($binaryName$ = "")
+				if FileExists($binaryName$)
+					set $VerInfoMap$ = getFileInfoMap($binaryName$)
+					set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
+					set $Language$ = LangCodeByHex($langCodeHex$)
+				endif
+			endif
+			add_audit_objects()
+		endif
+	endif
+Endfunc
+
+DefFunc get_windows_products_64($currentKey$ : string) : void
+	if not ($currentKey$ = "")
+		set $installSize$ = "-1"
+		set $binaryName$ = ""
+		set $Language$ = ""
+		set $licenseKey$ = ""
+		Set $displayVersion$ = ""
+		Set $version$ = ""
+		set $winSoftwareId$ = $currentKey$
+		if not ($winSoftwareId$ = "")
+			set $Language$ = ""
+			set $binaryName$ = ""
+			set $displayVersion$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$currentKey$+"] DisplayVersion")
+			set $displayName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$currentKey$+"] displayName")
+			set $uninstallString$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$currentKey$+"] uninstallString")
+			set $binaryName$ = GetRegistrystringvalue64 ("["+$uninstkey$+"\"+$currentKey$+"] binaryName")
+			if not($binaryName$ = "")
+				if FileExists($binaryName$)
+					set $VerInfoMap$ = getFileInfoMap($binaryName$)
+					set $langCodeHex$ = DecStrToHexStr(getValue("Language ID 0",$VerInfoMap$),"4")
+					set $Language$ = LangCodeByHex($langCodeHex$)
+				endif
+			endif
+			add_audit_objects()
+		endif
+	endif
+Endfunc
+
+DefFunc get_windows_hotfix_infos() : void
 	setloglevel = $Highloglevel$
 
 	Set $displayVersion$ = ""
@@ -186,7 +199,7 @@ DefFunc get_nt6_hotfix_info() : void
 	else
 		Set $architecture$ = "x86"
 	endif
-	create_hash4()
+	add_audit_objects()
 Endfunc
 
 
@@ -221,17 +234,13 @@ DefFunc getAppxDetails($aktname$ : string) : void
 			if ($architecture$ = "neutral") or ($architecture$ = 'nul') or ($architecture$ = 'null')
 				set $architecture$ = ""
 			endif
-			; workaround for not allwowed architecture 'arm' and 'arm64' in opsi backend
-			if ($architecture$ = "arm") or ($architecture$ = 'arm64')
-				set $architecture$ = ""
-			endif
 			set $uninstallString$ = ""
-			create_hash4()
+			add_audit_objects()
 		endif
 	endif
 Endfunc
 
-DefFunc getAppxInfos() : void
+DefFunc get_windows_appx_infos() : void
 	DefStringlist $appxInfoList$
 	DefVar $appxInfo$
 	DefStringlist $appxInfoLineEntryList$
@@ -275,10 +284,6 @@ DefFunc getAppxInfos() : void
 				if ($architecture$ = "neutral") or ($architecture$ = 'nul') or ($architecture$ = 'null')
 					set $architecture$ = ""
 				endif
-				; workaround for not allwowed architecture 'arm' and 'arm64' in opsi backend
-				if ($architecture$ = "arm") or ($architecture$ = 'arm64')
-					set $architecture$ = ""
-				endif
 			elseif $key$ = "Version"
 				set $displayVersion$ = $value$
 				if ($displayVersion$ = 'nul') or ($displayVersion$ = 'null')
@@ -294,7 +299,7 @@ DefFunc getAppxInfos() : void
 					Set $version$ = $displayVersion$
 					; this was the last entry, so we create the object
 					;comment "Create entry for: "+$winSoftwareId$
-					create_hash4()
+					add_audit_objects()
 					setloglevel = $Midloglevel$
 					;comment "Finished entry for: "+$winSoftwareId$
 					; init variable fields

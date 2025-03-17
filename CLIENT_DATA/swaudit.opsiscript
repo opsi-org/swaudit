@@ -29,6 +29,7 @@ DefVar $OpsiRegKey$
 DefVar $uninstkey$
 defVar $winSoftwareId$
 defVar $displayVersion$
+defVar $isOperatingSystem$
 defVar $displayName$
 defVar $uninstallString$
 defVar $Language$
@@ -49,7 +50,7 @@ DefVar $debug_send$
 DefVar $exitcode$
 DefVar $proccall$
 DefVar $serviceMethod$
-DefVar $aktkey$
+DefVar $currentKey$
 DefVar $tmp$
 DefVar $CurrentBuild$
 DefVar $UBR$
@@ -66,6 +67,7 @@ DefVar $index$
 
 
 DefStringList $linuxInfo$
+DefStringList $macosInfo$
 DefStringList $outLines$
 
 DefStringlist $uninstKeys$
@@ -132,13 +134,13 @@ ShowBitmap "%SCRIPTPATH%\swaudit.png" "Software Inventarisierung"
 set $OS$ = GetOS
 
 if not(($OS$ = "Linux") or ($OS$ = "Windows_NT") or ($OS$ = "macos"))
-	logError "Run aborted: wrong OS : only windows NT, macos or linux supported"
-	isFatalError "Wrong OS"
+	logError "Run aborted: only Windows, macOS and Linux supported"
+	isFatalError "OS not supported"
 endif
 
 if $OS$ = "Windows_NT"
 	if CompareDotSeparatedNumbers(GetMsVersionInfo,"<","5.1")
-		logError "Run aborted: wrong Windows version: only winxp and above allowed"
+		logError "Run aborted: unsupported Windows version: only Windows XP and above supported"
 		isFatalError "Windows version not supported"
 	endif
 endif
@@ -153,6 +155,9 @@ if $OS$ = "Linux"
 	set $distroarch$  = getValue("machine", $linuxInfo$)
 endif
 
+if $OS$ = "Linux"
+	set $macosInfo$ = getMacosVersionMap
+endif
 
 
 comment "Detect if we run in opsi service mode"
@@ -169,6 +174,11 @@ setloglevel = $Midloglevel$
 
 if $readfromfile$ = "off"
 	if $OS$ = "Windows_NT"
+		message "Collecting Windows OS info ..."
+		get_windows_os_info()
+
+		setloglevel = $Midloglevel$
+
 		if GetSystemType = "64 Bit System"
 			message "Collecting 64 Bit products ..."
 			set $uninstKeys$ = getRegistryKeyList64($uninstkey$)
@@ -176,7 +186,7 @@ if $readfromfile$ = "off"
 			set $architecture$ = "x64"
 			set $subversion$ = ""
 			set $Language$ = ""
-			for %aktkey% in $uninstKeys$ do getswdetails4_64("%aktkey%")
+			for %currentKey% in $uninstKeys$ do get_windows_products_64("%currentKey%")
 		endif
 
 		message "Collecting 32 Bit products ..."
@@ -188,71 +198,73 @@ if $readfromfile$ = "off"
 		set $architecture$ = "x86"
 		set $subversion$ = ""
 		set $Language$ = ""
-		for %aktkey% in $uninstKeys$ do getswdetails4_32("%aktkey%")
+		for %currentKey% in $uninstKeys$ do get_windows_products_32("%currentKey%")
 		setloglevel = $Highloglevel$
 
 		PowerShellCall('Get-AppxPackage /?')
 		if ("0" = GetLastExitcode)
 			message "Collecting Appx / Msix product details ...(takes a while)"
-			getAppxInfos()
+			get_windows_appx_infos()
 		endif
 		setloglevel = $Highloglevel$
 
-		message "Collecting os details ..."
-		get_windows_info()
-		setloglevel = $Midloglevel$
-
-
 		if CompareDotSeparatedNumbers(GetMsVersionInfo,">=","6")
 			if $include_win_hotfixes$ = "true"
-				message "Collecting hotfixes ..."getswdetails4_redhat
-				get_nt6_hotfix_info()
+				message "Collecting hotfixes ..."get_linux_products_redhat
+				get_windows_hotfix_infos()
 				setloglevel = $Highloglevel$
 			endif
 		endif
 	endif
-	if $OS$ = "Linux"
-		message "Collecting products ..."
-		getswdetails4_os()
 
+	if $OS$ = "Linux"
+		message "Collecting Linux OS info ..."
+		get_linux_os_info()
+
+		message "Collecting products ..."
 		if $distrotype$ = "debian"
 			setloglevel = $Midloglevel$
-			set $outLines$ = getOutstreamFromSection("shellInAnIcon_deb")
-			for %aktline% in $outLines$ do getswdetails4_deb("%aktline%")
+			set $outLines$ = getOutstreamFromSection("shellInAnIcon_debian")
+			for %aktline% in $outLines$ do get_linux_products_debian("%aktline%")
 			setloglevel=$Highloglevel$
 		endif
 		if $distrotype$ = "suse"
 			setloglevel = $Midloglevel$
 			set $outLines$ = getOutstreamFromSection("shellInAnIcon_suse")
-			for %aktline% in $outLines$ do getswdetails4_suse("%aktline%")
+			for %aktline% in $outLines$ do get_linux_products_suse("%aktline%")
 			setloglevel=$Highloglevel$
 		endif
 		if $distrotype$ = "redhat"
 			setloglevel = $Midloglevel$
 			set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
-			for %aktline% in $outLines$ do getswdetails4_redhat("%aktline%")
+			for %aktline% in $outLines$ do get_linux_products_redhat("%aktline%")
 			setloglevel=$Highloglevel$
 		endif
-	endif ; linux
+	endif
+
 	if $OS$ = "macos"
+		message "Collecting macOS OS info ..."
+		get_macos_os_info()
+
 		message "Collecting products #1 ..."
 		setloglevel = $Midloglevel$
 		set $outLines$ = shellCall('pkgutil --pkgs')
-		for %aktline% in $outLines$ do getswdetails4_macos1("%aktline%")
+		for %aktline% in $outLines$ do get_macos_products_pkgutil("%aktline%")
 
 		message "Collecting products #2 ..."
 		set $outLines$ = shellCall('ls -1 /Applications/*/Info.plist')
 		; this gives 90% binary files:
 		;set $outLines$ = listFiles("/Applications","Info.plist","True")
 		message "Collecting products #3 ..."
-		for %aktline% in $outLines$ do getswdetails4_macos3("%aktline%")
+		for %aktline% in $outLines$ do get_macos_products_info_plist("%aktline%")
 		if fileExists("/usr/local/bin/brew")
 			message "collecting products #3 ..."
 			set $outLines$ = shellCall("sudo -H -u opsisetupadmin brew list -1 --versions")
-			for %aktline% in $outLines$ do getswdetails4_macos4("%aktline%")
+			for %aktline% in $outLines$ do get_macos_products_brew("%aktline%")
 		endif
 		setloglevel=$Highloglevel$
-	endif ; macos
+	endif
+
 	setloglevel = $Midloglevel$
 	comment "Convert object list to json array ..."
 	set $softwareObjectArray$ = jsonStringListToJsonArray($softwareObjectList$)
@@ -313,13 +325,13 @@ else
 		endif
 		set $serviceMethod$ = "auditSoftware_createObjects"
 		set $softwareObjectList$ = jsonAsArrayToStringList($softwareObjectArray$)
-		for %aktObject% in $softwareObjectList$ do opsiservicecall_create_aktObject
+		for %curObject% in $softwareObjectList$ do opsiservicecall_create_curObject
 		if errorsOccurredSinceMark > 0
 			isFatalError
 		endif
 		set $serviceMethod$ = "auditSoftwareOnClient_createObjects"
 		set $softwareObjectList$ = jsonAsArrayToStringList($softwareOnClientObjectArray$)
-		for %aktObject% in $softwareObjectList$ do opsiservicecall_create_aktObject
+		for %curObject% in $softwareObjectList$ do opsiservicecall_create_curObject
 		if errorsOccurredSinceMark > 0
 			isFatalError
 		endif
@@ -350,7 +362,7 @@ endif
 ; ---------- end of main program -------------------------
 
 ;
-[shellInAnIcon_deb]
+[shellInAnIcon_debian]
 # dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${STATUS}\n'
 # dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${INSTALLED-SIZE}\n'
 dpkg-query -W -f='${Package} ${Version}\t${ARCHITECTURE}\t${INSTALLED-SIZE}\t${db:Status-Abbrev}\n'
@@ -367,28 +379,28 @@ delete "%opsiTmpDir%\swaudit_keys.ini"
 [opsiservicecall_auditSoftwareOnClient_setObsolete]
 "method": "auditSoftwareOnClient_setObsolete"
 "params": [
-			"$clientId$"
-			]
+		"$clientId$"
+	]
 
 
 [opsiservicecall_auditSoftware_createObjects]
 "method": "auditSoftware_createObjects"
 "params": [
-			'$softwareObjectArray$'
-			]
+		'$softwareObjectArray$'
+	]
 
 
 [opsiservicecall_auditSoftwareOnClient_createObjects]
 "method": "auditSoftwareOnClient_createObjects"
 "params": [
-			'$softwareOnClientObjectArray$'
-			]
+		'$softwareOnClientObjectArray$'
+	]
 
-[opsiservicecall_create_aktObject]
+[opsiservicecall_create_curObject]
 "method": "$serviceMethod$"
 "params": [
-			'[%aktObject%]'
-			]
+		'[%curObject%]'
+	]
 
 [Files_del_old]
 delete -f "%opsiTmpDir%\auditsoftware_%PCName%.json"

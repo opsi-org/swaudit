@@ -3,37 +3,38 @@
 
 encoding=utf8
 
-DefFunc getswdetails4_os() : void
+DefFunc get_linux_os_info() : void
 	init_vars()
 	setloglevel=$Midloglevel$
-	set $displayName$ = $distroOS$+" : "+$distroName$
-	if not ($displayName$ = '')
-		set $displayVersion$ = $distRelease$
-		set $tmp$ = $distroarch$
-		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
+
+	Set $displayName$ = $distroName$ + " " + $distRelease$
+	Set $displayVersion$ = $distRelease$
+	Switch getOSArchitecture
+		Case "x86_32"
 			set $architecture$ = "x86"
-		endif
-		if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
+		EndCase
+		Case "x86_64"
 			set $architecture$ = "x64"
-		endif
-		if ($tmp$ = "aarch64")
+		EndCase
+		Case "arm_64"
 			set $architecture$ = "arm64"
-		endif
-		if ($tmp$ = "noarch") or ($tmp$ = "all")
+		EndCase
+		DefaultCase
 			set $architecture$ = ""
-		endif
-		set $winSoftwareId$ = $displayName$
-		create_hash4()
-	endif
+		EndCase
+	EndSwitch
+	Set $isOperatingSystem$ = "true"
+
+	add_audit_objects()
 Endfunc
 
 
-DefFunc getswdetails4_deb($aktkey$ : string) : void
+DefFunc get_linux_products_debian($currentKey$ : string) : void
 	DefVar $listcount$
 	setloglevel=$Midloglevel$
-	if not ($aktkey$ = "")
+	if not ($currentKey$ = "")
 		init_vars()
-		set $resultlist$ = splitStringOnWhiteSpace($aktkey$)
+		set $resultlist$ = splitStringOnWhiteSpace($currentKey$)
 		set $listcount$ = count($resultlist$)
 		set $displayName$ = takeString(0,$resultlist$)
 		; Get installation state
@@ -53,6 +54,9 @@ DefFunc getswdetails4_deb($aktkey$ : string) : void
 					if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
 						set $architecture$ = "x64"
 					endif
+					if ($tmp$ = "arm64") or ($tmp$ = "aarch64")
+						set $architecture$ = "arm64"
+					endif
 					if ($tmp$ = "noarch") or ($tmp$ = "all")
 						set $architecture$ = ""
 					endif
@@ -66,16 +70,16 @@ DefFunc getswdetails4_deb($aktkey$ : string) : void
 			endif
 			set $winSoftwareId$ = $displayName$
 
-			create_hash4()
+			add_audit_objects()
 		endif
 	endif
 Endfunc
 
-DefFunc getswdetails4_suse($aktkey$ : string) : void
+DefFunc get_linux_products_suse($currentKey$ : string) : void
 	setloglevel=$Midloglevel$
-	if not ($aktkey$ = "")
+	if not ($currentKey$ = "")
 		init_vars()
-		set $resultlist$ = splitStringOnWhiteSpace($aktkey$)
+		set $resultlist$ = splitStringOnWhiteSpace($currentKey$)
 		if takeString(0,$resultlist$) = 'i'
 			set $displayName$ = takeString(2,$resultlist$)
 			set $displayVersion$ = takeString(6,$resultlist$)
@@ -86,21 +90,24 @@ DefFunc getswdetails4_suse($aktkey$ : string) : void
 			if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
 				set $architecture$ = "x64"
 			endif
+			if ($tmp$ = "arm64") or ($tmp$ = "aarch64")
+				set $architecture$ = "arm64"
+			endif
 			if ($tmp$ = "noarch") or ($tmp$ = "all")
 				set $architecture$ = ""
 			endif
 			set $winSoftwareId$ = $displayName$
 
-			create_hash4()
+			add_audit_objects()
 		endif
 	endif
 Endfunc
 
-DefFunc getswdetails4_redhat($aktkey$ : string) : void
+DefFunc get_linux_products_redhat($currentKey$ : string) : void
 	setloglevel=$Midloglevel$
-	if not ($aktkey$ = "")
+	if not ($currentKey$ = "")
 		init_vars()
-		set $resultlist$ = splitStringOnWhiteSpace($aktkey$)
+		set $resultlist$ = splitStringOnWhiteSpace($currentKey$)
 		set $displayName$ = takeString(0,$resultlist$)
 		set $resultlist2$  = splitString($displayName$, ".")
 		set $displayName$ = takeString(0,$resultlist2$)
@@ -120,6 +127,6 @@ DefFunc getswdetails4_redhat($aktkey$ : string) : void
 		set $displayVersion$ = takeString(1,$resultlist$)
 		set $winSoftwareId$ = $displayName$
 
-		create_hash4()
+		add_audit_objects()
 	endif
 Endfunc

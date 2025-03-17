@@ -3,7 +3,7 @@
 
 encoding=utf8
 
-DefFunc create_hash4() : void
+DefFunc add_audit_objects() : void
 
 	if $displayName$ = ""
 		set $name$ = $winSoftwareId$
@@ -33,6 +33,7 @@ DefFunc create_hash4() : void
 	;comment "$displayVersion$ -------= "+$displayVersion$
 	;comment "$binaryName$ -----------= "+$binaryName$
 	;comment "$licenseKey$ -----------= "+$licenseKey$
+	;comment "$isOperatingSystem$ ----= "+$isOperatingSystem$
 
 	setloglevel = $Lowloglevel$
 
@@ -62,6 +63,7 @@ DefFunc create_hash4() : void
 	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsSoftwareId",$winSoftwareId$)
 	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayName",$displayName$)
 	set $softwareObject$ = jsonAsObjectSetStringtypeValueByKey($softwareObject$,"windowsDisplayVersion",$displayVersion$)
+	set $softwareObject$ = jsonAsObjectSetValueByKey($softwareObject$,"isOperatingSystem",$isOperatingSystem$)
 	set $softwareObject$ = jsonAsObjectSetValueByKey($softwareObject$,"installSize",$installSize$)
 	if jsonIsObject($softwareObject$)
 		set $softwareObjectList$ = addtolist($softwareObjectList$,$softwareObject$)
@@ -100,6 +102,7 @@ DefFunc init_vars() : void
 	set $uninstallString$ = ""
 	set $binaryName$ = ""
 	set $licenseKey$ = ""
+	set $isOperatingSystem$ = "false"
 	Switch $OS$
 		Case "Linux"
 			set $subversion$ = "Lin:"

@@ -3,45 +3,77 @@
 
 encoding=utf8
 
-DefFunc getswdetails4_macos1($aktkey$ : string) : void
+
+DefFunc get_macos_os_info() : void
+	init_vars()
 	setloglevel=$Midloglevel$
-	if not ($aktkey$ = "")
+
+	DefVar $macosRelease$ = getValue("Release", $macosInfo$)
+	DefVar $versionParts$ = splitString($macosRelease$, ".")
+	DefVar $macosMajorVersion$ = takeString(0, $versionParts$) + "." + takeString(1, $versionParts$)
+
+	Set $displayName$ = "macOS " + $macosMajorVersion$
+	set $displayVersion$ = $macosRelease$
+	Switch getOSArchitecture
+		Case "x86_32"
+			set $architecture$ = "x86"
+		EndCase
+		Case "x86_64"
+			set $architecture$ = "x64"
+		EndCase
+		Case "arm_64"
+			set $architecture$ = "arm64"
+		EndCase
+		DefaultCase
+			set $architecture$ = ""
+		EndCase
+	EndSwitch
+	Set $isOperatingSystem$ = "true"
+
+	add_audit_objects()
+
+Endfunc
+
+
+DefFunc get_macos_products_pkgutil($currentKey$ : string) : void
+	setloglevel=$Midloglevel$
+	if not ($currentKey$ = "")
 		init_vars()
-		set $resultlist$ = shellCall('pkgutil --pkg-info '+$aktkey$)
+		set $resultlist$ = shellCall('pkgutil --pkg-info '+$currentKey$)
 		set $displayName$ = getValueBySeparator('package-id',':',$resultlist$)
 		if not ($displayName$ = '')
 			set $displayVersion$ = getValueBySeparator('version',':',$resultlist$)
-			set $winSoftwareId$ = $aktkey$
+			set $winSoftwareId$ = $currentKey$
 			set $architecture$ = "x64"
-			create_hash4()
+			add_audit_objects()
 		endif
 	endif
 Endfunc
 
-DefFunc getswdetails4_macos2($aktkey$ : string) : void
+DefFunc getswdetails4_macos2($currentKey$ : string) : void
 	setloglevel=$Midloglevel$
-	if not ($aktkey$ = "")
+	if not ($currentKey$ = "")
 		init_vars()
 		;set $resultlist$ = shellCall('pkgutil --pkg-info %aktline%')
-		set $displayName$ = ExtractFileName($aktkey$)
+		set $displayName$ = ExtractFileName($currentKey$)
 		if not ($displayName$ = '')
 			set $winSoftwareId$ = $displayName$
 			set $architecture$ = "x64"
-			create_hash4()
+			add_audit_objects()
 		endif
 	endif
 Endfunc
 
-DefFunc getswdetails4_macos3($aktkey$ : string) : void
+DefFunc get_macos_products_info_plist($currentKey$ : string) : void
 	DefStringlist $outlist$
 	DefVar $outstr$
 	setloglevel=$Midloglevel$
-	if fileexists($aktkey$)
-		set $outlist$ = shellCall('file -b '+$aktkey$)
+	if fileexists($currentKey$)
+		set $outlist$ = shellCall('file -b '+$currentKey$)
 		set $outstr$ = takeFirstStringContaining($outlist$,'XML 1.0 document text, ASCII text')
 		if not ($outstr$ = "")
 			init_vars()
-			set $resultlist$ = loadtextfile($aktkey$)
+			set $resultlist$ = loadtextfile($currentKey$)
 			set $index$ = getIndexFromListByContaining($resultlist$,"<key>CFBundleName</key>")
 			if isNumber($index$)
 				set $index$ = calculate($index$+" + 1")
@@ -67,22 +99,22 @@ DefFunc getswdetails4_macos3($aktkey$ : string) : void
 				set $winSoftwareId$ = trim($tmp$)
 			endif
 			set $architecture$ = "x64"
-			create_hash4()
+			add_audit_objects()
 		endif
 	endif
 Endfunc
 
-DefFunc getswdetails4_macos4($aktkey$ : string) : void
+DefFunc get_macos_products_brew($currentKey$ : string) : void
 	setloglevel=$Midloglevel$
-	if not ($aktkey$ = "")
+	if not ($currentKey$ = "")
 		init_vars()
-		set $resultlist$ = splitstringOnWhitespace($aktkey$)
+		set $resultlist$ = splitstringOnWhitespace($currentKey$)
 		set $displayName$ = takeString(0,$resultlist$)
 		set $version$ = takeString(1,$resultlist$)
 		if not ($displayName$ = '')
 			set $winSoftwareId$ = "(Homebrew) "+$displayName$
 			set $architecture$ = "x64"
-			create_hash4()
+			add_audit_objects()
 		endif
 	endif
 Endfunc
