@@ -1,5 +1,5 @@
 [Package]
-version: 4
+version: 1
 depends: 
 
 [Product]
@@ -8,7 +8,7 @@ id: swaudit
 name: Client Software inventory (Windows / Linux / macos)
 description: Windows: uninstall information from registry / powershell; Linux: from package system
 advice: opsi-script >= 4.12.4.35 needed
-version: 4.3.1.2
+version: 4.3.2.0
 priority: -90
 licenseRequired: False
 productClasses: 
