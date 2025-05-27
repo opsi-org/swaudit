@@ -1,0 +1,17 @@
+[[installers]]
+processes = []
+check_processes_from_dirs = []
+install_dir = ''
+path = ''
+
+[installers.requirement]
+os_arch = 'arch_unknown'
+os = 'windows'
+requiredSpaceMB = 0
+
+[product]
+productIconFilePath = 'swaudit.png'
+
+[specification]
+version = '0.1'
+

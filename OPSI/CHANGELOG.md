@@ -1,5 +1,13 @@
 # Changelog swaudit
 
+## [4.3.2.1-1] - 2025-03-17
+
+### Added
+* background-install meta data file:
+      opsi-meta-data.toml
+
+ -- d.oertel <d.oertel@uib.de> 2025-05-27
+
 ## [4.3.2.0-1] - 2025-03-17
 
 ### Added
