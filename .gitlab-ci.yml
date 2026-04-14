@@ -22,7 +22,7 @@ test_versions:
   stage: test
   when: manual
   script:
-    - opsi-dev-cli -l 6 jenkins test --systems=win7,win7-x64,win81-x64,win2012,win2022,win10-x64-21h1,debian11,mint21-1,redhat8,rocky9,sle15-4,ubuntu20-04,macos-11-0,macos-14
+    - opsi-dev-cli -l 6 jenkins test --systems=winx64,debian,mint21-1,redhat,rocky,ubuntu,macos
 
 test_tagged:
   stage: test
