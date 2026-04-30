@@ -20,18 +20,19 @@ DefFunc get_macos_os_info() : void
 	set $displayVersion$ = $macosRelease$
 	Switch getOSArchitecture
 		Case "x86_32"
-			set $architecture$ = "x86"
+			set $OSArchitecture$ = "x86"
 		EndCase
 		Case "x86_64"
-			set $architecture$ = "x64"
+			set $OSArchitecture$ = "x64"
 		EndCase
 		Case "arm_64"
-			set $architecture$ = "arm64"
+			set $OSArchitecture$ = "arm64"
 		EndCase
 		DefaultCase
-			set $architecture$ = ""
+			set $OSArchitecture$ = ""
 		EndCase
 	EndSwitch
+	set $architecture$ = $OSArchitecture$
 	Set $isOperatingSystem$ = "true"
 
 	add_audit_objects()
@@ -45,13 +46,34 @@ DefFunc get_macos_products_pkgutil($currentKey$ : string) : void
 	setloglevel=$Midloglevel$
 	if not ($currentKey$ = "")
 		init_vars()
-		set $resultlist$ = shellCall('pkgutil --pkg-info '+$currentKey$)
-		set $displayName$ = getValueBySeparator('package-id',':',$resultlist$)
-		if not ($displayName$ = '')
-			set $displayVersion$ = getValueBySeparator('version',':',$resultlist$)
-			set $winSoftwareId$ = $currentKey$
-			set $architecture$ = "x64"
-			add_audit_objects()
+		;set $resultlist$ = shellCall('pkgutil --pkg-info '+$currentKey$)
+		set $resultlist$ = splitString($currentKey$,";")
+		if count($resultlist$) INT> "0" 
+			set $displayName$ = takeString(0,$resultlist$)
+			if not ($displayName$ = '')
+				set $displayVersion$ = takeString(1,$resultlist$)
+				set $winSoftwareId$ = $displayName$
+				set $architecture$ = ""
+				add_audit_objects()
+			endif
+		endif
+	endif
+Endfunc
+
+DefFunc get_macos_products_system_profiler($currentKey$ : string) : void
+	setloglevel=$Midloglevel$
+	if not ($currentKey$ = "")
+		init_vars()
+		;set $resultlist$ = shellCall('pkgutil --pkg-info '+$currentKey$)
+		set $resultlist$ = splitString($currentKey$,";")
+		if count($resultlist$) INT> "0" 
+			set $displayName$ = takeString(0,$resultlist$)
+			if not ($displayName$ = '')
+				set $displayVersion$ = takeString(1,$resultlist$)
+				set $winSoftwareId$ = $displayName$
+				set $architecture$ = takeString(2,$resultlist$)
+				add_audit_objects()
+			endif
 		endif
 	endif
 Endfunc
@@ -111,7 +133,7 @@ DefFunc get_macos_products_info_plist($currentKey$ : string) : void
 Endfunc
 
 DefFunc get_macos_products_brew($currentKey$ : string) : void
-	setloglevel=$Midloglevel$
+	setloglevel=$Highloglevel$
 	if not ($currentKey$ = "")
 		init_vars()
 		set $resultlist$ = splitstringOnWhitespace($currentKey$)
@@ -119,7 +141,11 @@ DefFunc get_macos_products_brew($currentKey$ : string) : void
 		set $version$ = takeString(1,$resultlist$)
 		if not ($displayName$ = '')
 			set $winSoftwareId$ = "(Homebrew) "+$displayName$
-			set $architecture$ = "x64"
+			if fileExists("/opt/homebrew/bin/brew")
+				set $architecture$ = "arm64"
+			else
+				set $architecture$ = "x64"
+			endif
 			add_audit_objects()
 		endif
 	endif

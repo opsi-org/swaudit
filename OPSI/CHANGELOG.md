@@ -1,5 +1,10 @@
 # Changelog swaudit
 
+## [4.3.2.2-1] - 2026-04-28
+
+### Fixed
+* swaudit for macOS, more complete collection of software/apps  (j.werner <j.werner@uib.de>)
+
 ## [4.3.2.1-1] - 2025-03-17
 
 ### Added
