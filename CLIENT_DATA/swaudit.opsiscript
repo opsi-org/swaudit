@@ -39,6 +39,7 @@ DefVar $version$
 DefVar $subversion$
 DefVar $architecture$
 DefVar $OS$
+DefVar $OSArchitecture$
 DefVar $binaryName$
 DefVar $installSize$
 DefVar $langCodeHex$
@@ -84,6 +85,7 @@ DefStringList $softwareOnClientObjectList$
 DefVar $include_win_hotfixes$
 DefVar $isfatal$
 DefVar $fatalmessage$
+DefVar $Homebrew$
 
 
 set $ProductId$ = "swaudit"
@@ -248,19 +250,38 @@ if $readfromfile$ = "off"
 
 		message "Collecting products #1 ..."
 		setloglevel = $Midloglevel$
-		set $outLines$ = shellCall('pkgutil --pkgs')
+		set $outLines$ = getOutStreamFromSection("ShellScript_macos_pkgutil")
 		for %aktline% in $outLines$ do get_macos_products_pkgutil("%aktline%")
 
 		message "Collecting products #2 ..."
-		set $outLines$ = shellCall('ls -1 /Applications/*/Info.plist')
-		; this gives 90% binary files:
-		;set $outLines$ = listFiles("/Applications","Info.plist","True")
-		message "Collecting products #3 ..."
-		for %aktline% in $outLines$ do get_macos_products_info_plist("%aktline%")
-		if fileExists("/usr/local/bin/brew")
-			message "collecting products #3 ..."
-			set $outLines$ = shellCall("sudo -H -u opsisetupadmin brew list -1 --versions")
-			for %aktline% in $outLines$ do get_macos_products_brew("%aktline%")
+		set $outLines$ = getOutStreamFromSection("ShellScript_macos_system_profiler")
+		for %aktline% in $outLines$ do get_macos_products_system_profiler("%aktline%")
+		if FileExists("/usr/local/bin/brew") or FileExists ("/opt/homebrew/bin/brew")
+			comment "Get homebrew version"
+			init_vars()
+			SetLogLevel = $HighLogLevel$
+			if fileExists("/opt/homebrew/bin/brew")
+				set $Homebrew$ = "arch -arm64 /opt/homebrew/bin/brew"
+				set $architecture$ = "arm64"
+			else
+				set $Homebrew$ = "/usr/local/bin/brew"
+				set $architecture$ = "x64"
+			endif
+			set $outLines$ = getOutStreamFromSection("ShellScript_macos_brew_version")
+			set $resultlist$ = splitstringOnWhitespace(takeString(0,$outLines$))
+			set $displayName$ = takeString(0,$resultlist$)
+			set $version$ = takeString(1,$resultlist$)
+			if not ($displayName$ = '')
+				set $winSoftwareId$ = $displayName$
+			endif
+			SetLogLevel = $MidLogLevel$
+			add_audit_objects()
+			message "Collecting products #3 ..."
+			comment "Collecting products(formulars) installed with homebrew"
+			set $outLines$ = getOutStreamFromSection("ShellScript_macos_brew")
+			if count($outLines$) INT> "0"
+				for %aktline% in $outLines$ do get_macos_products_brew("%aktline%")
+			endif
 		endif
 		setloglevel=$Highloglevel$
 	endif
@@ -372,6 +393,31 @@ zypper se -i -s
 
 [shellInAnIcon_redhat]
 yum list installed
+
+[ShellScript_macos_system_profiler]
+system_profiler SPApplicationsDataType -json | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+mapping = {'arch_arm_i64': '$OSArchitecture$', 'arch_i64': 'x64', 'arch_other':'', 'arch_ios':'', 'arch_arm': 'arm64'}
+for app in data.get('SPApplicationsDataType', []):
+    name = app.get('_name')
+    ver = app.get('version')
+    arch_kind = app.get('arch_kind', '')
+    arch = mapping.get(arch_kind, '')
+    print(f'{name};{ver};{arch}')
+"
+
+[ShellScript_macos_pkgutil]
+pkgutil --pkgs | xargs -I {pkg} pkgutil --pkg-info {pkg} | awk '/package-id/ {printf "%s;", $2} /version/ {print $2}'
+
+[ShellScript_macos_brew]
+cd /var/opsisetupadmin
+sudo -H -u opsisetupadmin $Homebrew$ list --versions
+
+[ShellScript_macos_brew_version]
+cd /var/opsisetupadmin
+sudo -H -u opsisetupadmin $Homebrew$ --version
+
 
 [Files_del_temp]
 delete "%opsiTmpDir%\swaudit_keys.ini"
