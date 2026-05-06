@@ -17,7 +17,7 @@ DefFunc add_audit_objects() : void
 	setloglevel = $Midloglevel$
 
 
-	comment "Product: " + $name$ + " Version: " + $version$ + " Archticture: " + $architecture$
+	comment "Product: " + $name$ + " Version: " + $version$ + " Architecture: " + $architecture$
 	;comment ""
 	;comment "next product is...."
 	;comment "$name$  ----------------= "+$name$
