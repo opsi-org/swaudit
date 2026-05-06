@@ -276,6 +276,7 @@ if $readfromfile$ = "off"
 			endif
 			SetLogLevel = $MidLogLevel$
 			add_audit_objects()
+			SetLogLevel = $HighLogLevel$
 			message "Collecting products #3 ..."
 			comment "Collecting products(formulars) installed with homebrew"
 			set $outLines$ = getOutStreamFromSection("ShellScript_macos_brew")
@@ -395,17 +396,26 @@ zypper se -i -s
 yum list installed
 
 [ShellScript_macos_system_profiler]
-system_profiler SPApplicationsDataType -json | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-mapping = {'arch_arm_i64': '$OSArchitecture$', 'arch_i64': 'x64', 'arch_other':'', 'arch_ios':'', 'arch_arm': 'arm64'}
-for app in data.get('SPApplicationsDataType', []):
-    name = app.get('_name')
-    ver = app.get('version')
-    arch_kind = app.get('arch_kind', '')
-    arch = mapping.get(arch_kind, '')
-    print(f'{name};{ver};{arch}')
-"
+JSON_DATA=$(system_profiler SPApplicationsDataType -json)
+
+# Parsing via JXA (JavaScript for Automation)
+osascript -l 'JavaScript' <<EOF
+var data = $JSON_DATA;
+var apps = data.SPApplicationsDataType || [];
+var mapping = { 
+    "arch_arm_i64": "$OSArchitecture$", 
+    "arch_i64": "x64", 
+    "arch_arm": "arm64" 
+};
+
+apps.forEach(function(app) {
+    var name = app._name || "";
+    var ver = app.version || "";
+    var archKind = app.arch_kind || "";
+    var arch = mapping[archKind] || "";
+    console.log(name + ";" + ver + ";" + arch);
+});
+EOF
 
 [ShellScript_macos_pkgutil]
 pkgutil --pkgs | xargs -I {pkg} pkgutil --pkg-info {pkg} | awk '/package-id/ {printf "%s;", $2} /version/ {print $2}'

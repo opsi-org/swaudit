@@ -1,5 +1,10 @@
 # Changelog swaudit
 
+## [4.3.2.3-1] - 2026-05-06
+
+### Fixed
+* swaudit for macOS, only use tools available on a fresh macOS installation  (j.werner <j.werner@uib.de>)
+
 ## [4.3.2.2-1] - 2026-04-28
 
 ### Fixed
