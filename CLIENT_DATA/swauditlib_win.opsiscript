@@ -158,33 +158,16 @@ DefFunc get_windows_hotfix_infos() : void
 	set $Language$ = LangCodeByHex("0x0000")
 
 	markErrorNumber
-	set $resultlist$ = shellCall("wmic path Win32_QuickFixEngineering get hotfixid")
-	set $resultlist$ = shellCall("wmic qfe get hotfixid")
+	set $resultlist$ = powershellCall("Get-HotFix | select -expand HotFixID")
 	if errorsOccurredSinceMark > 0
-		LogError "Could not get hotfixes via wmic qfe - fatal"
+		LogError "Could not get hotfixes via PowerShell Get-HotFix - fatal"
 		set $isfatal$ = "true"
 		set $fatalmessage$ = "no hotfix"
 	endif
 	if not(getlastexitcode = "0")
-		LogError "Could not get hotfixes via wmic qfe - fatal"
+		LogError "Could not get hotfixes via PowerShell Get-HotFix - fatal"
 		set $isfatal$ = "true"
 		set $fatalmessage$ = "no hotfix"
-	endif
-	if contains(takestring(0,$resultlist$),"Instan")
-		LogError "Could not get hotfixes via wmic qfe - fatal"
-		set $isfatal$ = "true"
-		set $fatalmessage$ = "no hotfix"
-	endif
-	if $isfatal$ = "true"
-		comment "Retry with powershell ...."
-		set $resultlist$ = powershellCall("Get-HotFix | select -expand HotFixID")
-		if not(getlastexitcode = "0")
-			LogError "Could not get hotfixes via wmic qfe - fatal"
-			set $isfatal$ = "true"
-			set $fatalmessage$ = "no hotfix"
-		else
-			set $isfatal$ = "false"
-		endif
 	endif
 
 	set $resultlist$ = getListContaining($resultlist$, "KB")
