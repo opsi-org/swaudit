@@ -1,5 +1,11 @@
 # Changelog swaudit
 
+## [4.3.2.4-1] - 2026-10-23
+
+### Changed
+
+- rebuild an cleanup (Nils Doerrer <n.doerrer@uib.de>)
+
 ## [4.3.2.3-2] - 2026-10-02
 
 ### Fixed

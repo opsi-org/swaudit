@@ -1,32 +1,27 @@
 image: docker.uib.gmbh/opsi/dev/pybuilder:uib-python-default
 
 stages:
-  - package
+  - build
   - test
 
-
-make_opsi_package:
-  stage: package
+build_package:
+  stage: build
   script:
-    - prerelease_package="$(opsi-dev-cli opsi-package get-value packageVersion).$CI_JOB_ID"
-    - '[ "$CI_COMMIT_TAG" = "" ] && opsi-dev-cli opsi-package set-value packageVersion "$prerelease_package"'
-    - opsi-makepackage --no-set-rights -l 6
-    - upload-package swaudit*.opsi
-  artifacts:
-    name: prepared_files
-    paths:
-      - OPSI/control
-
-
-test_versions:
-  stage: test
-  when: manual
-  script:
-    - opsi-dev-cli -l 6 jenkins test --systems=winx64,debian,mint21-1,redhat,rocky,ubuntu,macos
+    - packageVersion=$(opsi-dev-cli opsi-package get-value packageVersion)
+    - opsi-dev-cli binary pull
+    - '[ "$CI_COMMIT_TAG" = "" ] && opsi-dev-cli opsi-package set-value packageVersion "$packageVersion.$CI_JOB_ID"'
+    - opsi-cli package make
+    - upload-package *.opsi
 
 test_tagged:
   stage: test
+  script:
+    - opsi-dev-cli -l info jenkins test
   only:
     - tags
+
+test_tagged_manual:
+  stage: test
   script:
-    - opsi-dev-cli -l 6 jenkins test
+    - opsi-dev-cli -l info jenkins test
+  when: manual

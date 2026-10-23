@@ -1,0 +1,88 @@
+[Package]
+version = "1"
+depends = []
+
+[Product]
+type = "LocalbootProduct"
+id = "swaudit"
+name = "Client Software inventory (Windows / Linux / macos)"
+description = """Windows: uninstall information from registry / powershell; Linux: from package system"""
+advice = """opsi-script >= 4.12.4.35 needed"""
+version = "4.3.2.4"
+priority = -90
+licenseRequired = false
+productClasses = []
+setupScript = "swaudit.opsiscript"
+alwaysScript = "swaudit.opsiscript"
+windowsSoftwareIds = []
+
+[[ProductProperty]]
+type = "UnicodeProductProperty"
+name = "usefilebuffer"
+description = """Save results to file and reread it"""
+default = ["off"]
+values = [
+    "off",
+    "on",
+]
+multivalue = false
+editable = false
+
+[[ProductProperty]]
+type = "UnicodeProductProperty"
+name = "windowmode"
+description = """Mode of the opsi-script window"""
+default = ["maximized"]
+values = [
+    "maximized",
+    "minimized",
+    "windowed",
+]
+multivalue = false
+editable = false
+
+[[ProductProperty]]
+type = "UnicodeProductProperty"
+name = "readfromfile"
+description = """ONLY DEBUG - do not use if you are not sure what you doing! (Do not make a audit but read values from c:\\opsi.org\\tmp and send them)"""
+default = ["off"]
+values = [
+    "off",
+    "on",
+]
+multivalue = false
+editable = false
+
+[[ProductProperty]]
+type = "UnicodeProductProperty"
+name = "maxloglevel"
+description = """Reduce log file size by setting lower max log level"""
+default = ["5"]
+values = [
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+]
+multivalue = false
+editable = false
+
+[[ProductProperty]]
+type = "BoolProductProperty"
+name = "debug_send"
+description = """ONLY DEBUG - Send data using one serviceall per object"""
+default = [false]
+
+[[ProductProperty]]
+type = "UnicodeProductProperty"
+name = "win10subversion"
+description = """Windows 10 OS Build (https://docs.microsoft.com/en-us/windows/windows-10/release-information)  on Win10, Win 2016, Win2019 or begin of HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion] ProductId" for example 00330-71317"""
+default = ["win10osbuild"]
+values = [
+    "hklmproductid",
+    "win10osbuild",
+]
+multivalue = false
+editable = false
