@@ -9,5 +9,5 @@ jenkins-test:
   ACTIONREQUEST: setup,setup
   PRODUCTS: swaudit,swaudit
   PROPERTIES: {}
-  SYSTEMS: windows,linux,macos
+  SYSTEMS: winx64,linux,macos
   SNAPSHOT: patched
