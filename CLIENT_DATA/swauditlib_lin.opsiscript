@@ -132,3 +132,28 @@ DefFunc get_linux_products_redhat($currentKey$ : string) : void
 		add_audit_objects()
 	endif
 Endfunc
+
+DefFunc get_linux_products_flatpak($currentKey$ : string) : void
+	set $resultlist$ = splitString($currentKey$, "	")
+	if count($resultlist$) INT>= "3"
+		init_vars()
+		set $displayName$ = takeString(0,$resultlist$)
+		set $winSoftwareId$ = $displayName$
+		set $subversion$ = $subversion$ + "Flatpak:" + takeString(2,$resultlist$)
+		if count($resultlist$) INT> "3"
+			set $displayVersion$ = takeString(3,$resultlist$)
+		endif
+		Switch takeString(1,$resultlist$)
+			Case "i386"
+				set $architecture$ = "x86"
+			EndCase
+			Case "x86_64"
+				set $architecture$ = "x64"
+			EndCase
+			Case "aarch64"
+				set $architecture$ = "arm64"
+			EndCase
+		EndSwitch
+		add_audit_objects()
+	endif
+Endfunc
