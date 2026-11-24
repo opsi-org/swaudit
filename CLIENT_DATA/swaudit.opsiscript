@@ -242,6 +242,17 @@ if $readfromfile$ = "off"
 			for %aktline% in $outLines$ do get_linux_products_redhat("%aktline%")
 			setloglevel=$Highloglevel$
 		endif
+
+		setloglevel = $Midloglevel$
+		set $outLines$ = getOutstreamFromSection("shellInAnIcon_flatpak")
+		if not (GetLastExitCode = "0")
+			isFatalError "Could not collect system Flatpak packages"
+		endif
+		if count($outLines$) INT> "0"
+			; Read by index so quotes in version strings are not interpolated into the script.
+			for %flatpakIndex% = "0" to calculate(count($outLines$) + " - 1") do get_linux_products_flatpak(takeString("%flatpakIndex%", $outLines$))
+		endif
+		setloglevel = $Highloglevel$
 	endif
 
 	if $OS$ = "macos"
@@ -394,6 +405,11 @@ zypper se -i -s
 
 [shellInAnIcon_redhat]
 yum list installed
+
+[shellInAnIcon_flatpak]
+if command -v flatpak >/dev/null 2>&1; then
+	flatpak list --system --columns=application,arch,branch,version
+fi
 
 [ShellScript_macos_system_profiler]
 JSON_DATA=$(system_profiler SPApplicationsDataType -json)
