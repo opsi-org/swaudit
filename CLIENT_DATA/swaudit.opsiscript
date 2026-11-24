@@ -238,8 +238,16 @@ if $readfromfile$ = "off"
 		endif
 		if $distrotype$ = "redhat"
 			setloglevel = $Midloglevel$
-			set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
-			for %aktline% in $outLines$ do get_linux_products_redhat("%aktline%")
+			if not (which("dnf5") = "")
+				set $outLines$ = getOutstreamFromSection("shellInAnIcon_dnf5")
+				if not (GetLastExitcode = "0") or (count($outLines$) = "0")
+					isFatalError "DNF5 did not return an installed package list"
+				endif
+				for %aktline% in $outLines$ do get_linux_products_dnf5("%aktline%")
+			else
+				set $outLines$ = getOutstreamFromSection("shellInAnIcon_redhat")
+				for %aktline% in $outLines$ do get_linux_products_redhat("%aktline%")
+			endif
 			setloglevel=$Highloglevel$
 		endif
 	endif
@@ -394,6 +402,9 @@ zypper se -i -s
 
 [shellInAnIcon_redhat]
 yum list installed
+
+[shellInAnIcon_dnf5]
+LC_ALL=C dnf5 -q --disable-repo='*' repoquery --installed --queryformat '%{name}|%{arch}|%{evr}\n'
 
 [ShellScript_macos_system_profiler]
 JSON_DATA=$(system_profiler SPApplicationsDataType -json)

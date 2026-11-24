@@ -114,21 +114,41 @@ DefFunc get_linux_products_redhat($currentKey$ : string) : void
 		set $resultlist2$  = splitString($displayName$, ".")
 		set $displayName$ = takeString(0,$resultlist2$)
 		set $tmp$ = takeString(1,$resultlist2$)
-		if ($tmp$ = "i386") or ($tmp$ = "i586") or ($tmp$ = "i686")
-			set $architecture$ = "x86"
-		endif
-		if ($tmp$ = "amd64") or ($tmp$ = "x86_64")
-			set $architecture$ = "x64"
-		endif
-		if ($tmp$ = "aarch64")
-			set $architecture$ = "arm64"
-		endif
-		if ($tmp$ = "noarch") or ($tmp$ = "all")
-			set $architecture$ = ""
-		endif
 		set $displayVersion$ = takeString(1,$resultlist$)
-		set $winSoftwareId$ = $displayName$
-
-		add_audit_objects()
+		add_linux_rpm_product($tmp$)
 	endif
 Endfunc
+
+
+DefFunc get_linux_products_dnf5($row$ : string) : void
+	DefStringList $fields$
+	set $fields$ = splitString($row$, "|")
+	if not (count($fields$) = "3")
+		isFatalError "Unexpected row in DNF5 installed package list"
+	endif
+	init_vars()
+	set $displayName$ = takeString(0, $fields$)
+	set $displayVersion$ = takeString(2, $fields$)
+	if ($displayName$ = "") or ($displayVersion$ = "") or (takeString(1, $fields$) = "")
+		isFatalError "Missing field in DNF5 installed package list"
+	endif
+	add_linux_rpm_product(takeString(1, $fields$))
+EndFunc
+
+
+DefFunc add_linux_rpm_product($rpmArch$ : string) : void
+	if ($rpmArch$ = "i386") or ($rpmArch$ = "i586") or ($rpmArch$ = "i686")
+		set $architecture$ = "x86"
+	endif
+	if ($rpmArch$ = "amd64") or ($rpmArch$ = "x86_64")
+		set $architecture$ = "x64"
+	endif
+	if ($rpmArch$ = "aarch64")
+		set $architecture$ = "arm64"
+	endif
+	if ($rpmArch$ = "noarch") or ($rpmArch$ = "all")
+		set $architecture$ = ""
+	endif
+	set $winSoftwareId$ = $displayName$
+	add_audit_objects()
+EndFunc
